@@ -396,7 +396,8 @@ class Robot {
     this.headMatrix = rotateMat(this.headMatrix, angle, "y");
     this.headMatrix = multMat(headMatrix, this.headMatrix);
 
-    var matrix = multMat(this.headMatrix, this.headInitialMatrix);
+    var matrix
+    matrix = multMat(this.headMatrix, this.headInitialMatrix);
     matrix = multMat(this.torsoMatrix, matrix);
     matrix = multMat(this.torsoInitialMatrix, matrix);
     
@@ -441,6 +442,7 @@ class Robot {
     this.forearm2Matrix = idMat4();
     this.thigh1Matrix   = idMat4();
 
+    var matrixTorso    = this.torsoInitialMatrix
     var matrixHead     = multMat(this.torsoInitialMatrix, this.headInitialMatrix);
     var matrixArm1     = multMat(this.torsoInitialMatrix, this.arm1InitialMatrix);
     var matrixArm2     = multMat(this.torsoInitialMatrix, this.arm2InitialMatrix);
@@ -448,7 +450,7 @@ class Robot {
     var matrixForearm2 = multMat(this.torsoInitialMatrix, this.forearm2InitialMatrix);
     var matrixThigh1   = multMat(this.torsoInitialMatrix, this.thigh1InitialMatrix);
 
-    this.torso   .setMatrix(this.torsoInitialMatrix);
+    this.torso   .setMatrix(matrixTorso);
     this.head    .setMatrix(matrixHead);
     this.arm1    .setMatrix(matrixArm1);
     this.arm2    .setMatrix(matrixArm2);
