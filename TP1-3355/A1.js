@@ -247,7 +247,6 @@ function rescaleMat(matrix, x, y, z) {
 class Robot {
 
   constructor() {
-
     // Geometry
     this.headRadius     = 0.32;
     
