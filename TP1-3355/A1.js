@@ -315,10 +315,10 @@ class Robot {
     var y = this.torsoHeight / 2
     var z = 0.1
 
-    initialArm1Matrix = translateMat(initialArm2Matrix, x, y, z);
-    initialArm1Matrix = rescaleMat(initialArm2Matrix, this.armRadiusX, this.armRadiusY, this.armLength);
+    initialArm2Matrix = translateMat(initialArm2Matrix, x, y, z);
+    initialArm2Matrix = rescaleMat(initialArm2Matrix, this.armRadiusX, this.armRadiusY, this.armLength);
     
-    return initialArm1Matrix;
+    return initialArm2Matrix;
   }
 
   // ------------------------------------------------------------------------------------------------
