@@ -383,12 +383,10 @@ class Robot {
     this.torsoMatrix = translateMat(this.torsoMatrix, deltaX, deltaY, deltaZ);
 
     var torsoMatrix = multMat(this.torsoMatrix, this.torsoInitialMatrix);
-    var headMatrix  = multMat(this.headMatrix, this.headInitialMatrix);
+    var headMatrix  = multMat(torsoMatrix, multMat(this.headMatrix, this.headInitialMatrix));
 
-    var bodyMatrix  = multMat(torsoMatrix, headMatrix);
-
-    this.torso.setMatrix(bodyMatrix);
-    this.head .setMatrix(bodyMatrix);
+    this.torso.setMatrix(torsoMatrix);
+    this.head .setMatrix(headMatrix);
   }
   
   rotateHead(angle) {
