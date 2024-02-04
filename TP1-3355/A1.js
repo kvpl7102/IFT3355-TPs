@@ -293,69 +293,69 @@ class Robot {
     return translateMat(initialHeadMatrix, x, y, z);
   }
 
-  initialArm1Matrix() {
-    var initialArm1Matrix = idMat4();
+  initialArmRMatrix() {
+    var initialArmRMatrix = idMat4();
 
     var x = this.torsoRadius * -2
     var y = this.torsoHeight /  2
     var z = 0.1
 
-    initialArm1Matrix = translateMat(initialArm1Matrix, x, y, z);
-    initialArm1Matrix = rescaleMat(initialArm1Matrix, this.armRadiusX, this.armRadiusY, this.armLength);
+    initialArmRMatrix = translateMat(initialArmRMatrix, x, y, z);
+    initialArmRMatrix = rescaleMat(initialArmRMatrix, this.armRadiusX, this.armRadiusY, this.armLength);
     
-    return initialArm1Matrix;
+    return initialArmRMatrix;
   }
   
-  initialArm2Matrix() {
-    var initialArm2Matrix = idMat4();
+  initialArmLMatrix() {
+    var initialArmLMatrix = idMat4();
 
     var x = this.torsoRadius * 2
     var y = this.torsoHeight / 2
     var z = 0.1
 
-    initialArm2Matrix = translateMat(initialArm2Matrix, x, y, z);
-    initialArm2Matrix = rescaleMat(initialArm2Matrix, this.armRadiusX, this.armRadiusY, this.armLength);
+    initialArmLMatrix = translateMat(initialArmLMatrix, x, y, z);
+    initialArmLMatrix = rescaleMat(initialArmLMatrix, this.armRadiusX, this.armRadiusY, this.armLength);
     
-    return initialArm2Matrix;
+    return initialArmLMatrix;
   }
 
-  initialForearm1Matrix() {
-    var initialForearm1Matrix = idMat4();
+  initialForearmRMatrix() {
+    var initialForearmRMatrix = idMat4();
 
     var x = this.torsoRadius * -2
     var y = this.torsoHeight /  2
     var z = this.forearmLength - this.armLength - 0.07
 
-    initialForearm1Matrix = translateMat(initialForearm1Matrix, x, y, z);
-    initialForearm1Matrix = rescaleMat(initialForearm1Matrix, this.forearmRadiusX, this.forearmRadiusY, this.forearmLength);
+    initialForearmRMatrix = translateMat(initialForearmRMatrix, x, y, z);
+    initialForearmRMatrix = rescaleMat(initialForearmRMatrix, this.forearmRadiusX, this.forearmRadiusY, this.forearmLength);
 
-    return initialForearm1Matrix;
+    return initialForearmRMatrix;
   }
 
-  initialForearm2Matrix() {
-    var initialForearm2Matrix = idMat4();
+  initialForearmLMatrix() {
+    var initialForearmLMatrix = idMat4();
 
     var x = this.torsoRadius * 2
     var y = this.torsoHeight / 2
     var z = this.forearmLength - this.armLength - 0.07
     
-    initialForearm2Matrix = translateMat(initialForearm2Matrix, x, y, z);
-    initialForearm2Matrix = rescaleMat(initialForearm2Matrix, this.forearmRadiusX, this.forearmRadiusY, this.forearmLength);
+    initialForearmLMatrix = translateMat(initialForearmLMatrix, x, y, z);
+    initialForearmLMatrix = rescaleMat(initialForearmLMatrix, this.forearmRadiusX, this.forearmRadiusY, this.forearmLength);
 
-    return initialForearm2Matrix;
+    return initialForearmLMatrix;
   }
 
-  initialThigh1Matrix() {
-    var initialThigh1Matrix = idMat4();
+  initialThighRMatrix() {
+    var initialThighRMatrix = idMat4();
 
     var x = 4
     var y = 5
-    var z = 0.1
+    var z = -0.1
 
-    initialThigh1Matrix = translateMat(initialThigh1Matrix, x, y, z);
-    initialThigh1Matrix = rescaleMat(initialThigh1Matrix, this.thighRadiusX, this.thighRadiusY, this.thighLength);
+    initialThighRMatrix = translateMat(initialThighRMatrix, x, y, z);
+    initialThighRMatrix = rescaleMat(initialThighRMatrix, this.thighRadiusX, this.thighRadiusY, this.thighLength);
 
-    return initialThigh1Matrix;
+    return initialThighRMatrix;
   }
 
   rotateTorso(angle) {
@@ -418,54 +418,54 @@ class Robot {
     // Parts
     this.torso    = new THREE.Mesh(torsoGeometry  , this.material);
     this.head     = new THREE.Mesh(headGeometry   , this.material);
-    this.arm1     = new THREE.Mesh(armGeometry    , this.material);
-    this.arm2     = new THREE.Mesh(armGeometry    , this.material);
-    this.forearm1 = new THREE.Mesh(forearmGeometry, this.material);
-    this.forearm2 = new THREE.Mesh(forearmGeometry, this.material);
-    this.thigh1   = new THREE.Mesh(thighGeometry  , this.material);
+    this.armR     = new THREE.Mesh(armGeometry    , this.material);
+    this.armL     = new THREE.Mesh(armGeometry    , this.material);
+    this.forearmR = new THREE.Mesh(forearmGeometry, this.material);
+    this.forearmL = new THREE.Mesh(forearmGeometry, this.material);
+    this.thighR   = new THREE.Mesh(thighGeometry  , this.material);
     
 
     // Initial transformations
     this.torsoInitialMatrix    = this.initialTorsoMatrix();
     this.headInitialMatrix     = this.initialHeadMatrix();
-    this.arm1InitialMatrix     = this.initialArm1Matrix();
-    this.arm2InitialMatrix     = this.initialArm2Matrix();
-    this.forearm1InitialMatrix = this.initialForearm1Matrix();
-    this.forearm2InitialMatrix = this.initialForearm2Matrix();
-    this.thigh1InitialMatrix   = this.initialThigh1Matrix();
+    this.armRInitialMatrix     = this.initialArmRMatrix();
+    this.armLInitialMatrix     = this.initialArmLMatrix();
+    this.forearmRInitialMatrix = this.initialForearmRMatrix();
+    this.forearmLInitialMatrix = this.initialForearmLMatrix();
+    this.thighRInitialMatrix   = this.initialThighRMatrix();
 
     this.torsoMatrix    = idMat4();
     this.headMatrix     = idMat4();
-    this.arm1Matrix     = idMat4();
-    this.arm2Matrix     = idMat4();
-    this.forearm1Matrix = idMat4();
-    this.forearm2Matrix = idMat4();
-    this.thigh1Matrix   = idMat4();
+    this.armRMatrix     = idMat4();
+    this.armLMatrix     = idMat4();
+    this.forearmRMatrix = idMat4();
+    this.forearmLMatrix = idMat4();
+    this.thighRMatrix   = idMat4();
 
     var matrixTorso    = this.torsoInitialMatrix
     var matrixHead     = multMat(this.torsoInitialMatrix, this.headInitialMatrix);
-    var matrixArm1     = multMat(this.torsoInitialMatrix, this.arm1InitialMatrix);
-    var matrixArm2     = multMat(this.torsoInitialMatrix, this.arm2InitialMatrix);
-    var matrixForearm1 = multMat(this.torsoInitialMatrix, this.forearm1InitialMatrix);
-    var matrixForearm2 = multMat(this.torsoInitialMatrix, this.forearm2InitialMatrix);
-    var matrixThigh1   = multMat(this.torsoInitialMatrix, this.thigh1InitialMatrix);
+    var matrixArmR     = multMat(this.torsoInitialMatrix, this.armRInitialMatrix);
+    var matrixArmL     = multMat(this.torsoInitialMatrix, this.armLInitialMatrix);
+    var matrixForearmR = multMat(this.torsoInitialMatrix, this.forearmRInitialMatrix);
+    var matrixForearmL = multMat(this.torsoInitialMatrix, this.forearmLInitialMatrix);
+    var matrixThighR   = multMat(this.torsoInitialMatrix, this.thighRInitialMatrix);
 
     this.torso   .setMatrix(matrixTorso);
     this.head    .setMatrix(matrixHead);
-    this.arm1    .setMatrix(matrixArm1);
-    this.arm2    .setMatrix(matrixArm2);
-    this.forearm1.setMatrix(matrixForearm1);
-    this.forearm2.setMatrix(matrixForearm2);
-    this.thigh1  .setMatrix(matrixThigh1);
+    this.armR    .setMatrix(matrixArmR);
+    this.armL    .setMatrix(matrixArmL);
+    this.forearmR.setMatrix(matrixForearmR);
+    this.forearmL.setMatrix(matrixForearmL);
+    this.thighR  .setMatrix(matrixThighR);
 
     // Add robot to scene
     scene.add(this.torso);
     scene.add(this.head);
-    scene.add(this.arm1);
-    scene.add(this.arm2);
-    scene.add(this.forearm1);
-    scene.add(this.forearm2);
-    scene.add(this.thigh1);
+    scene.add(this.armR);
+    scene.add(this.armL);
+    scene.add(this.forearmR);
+    scene.add(this.forearmL);
+    scene.add(this.thighR);
 
     // Add parts
     // TODO
