@@ -273,38 +273,66 @@ class Limb {
     this.radius          = radius;
     this.length          = length;
     this.initialPosition = initialPosition;
-    this.parentLimb      = parentLimb
-    this.referenceMatrix = idMat4()
-
+    this.parentLimb      = parentLimb;
+    
     this.shape           = new THREE.Mesh(this.geometry(), material);
-    this.matrix          = idMat4();
     this.initialMatrix   = this.initialMatrix();
-    
-    scene.add(this.shape)
-  }
-  
-  geometry     () { /* abstract */ }
-  initialMatrix() { /* abstract */ }
-
-  update() {
-    var matrix = multMat(this.matrix, this.initialMatrix);
-    
-    if (this.parentLimb != null) { // torso
-      matrix = multMat(this.parentLimb.matrix, matrix);
+    this.transformation  = this.initialMatrix;
+    this.joint           = {
+      x: 0,
+      y: 0,
+      z: this.parentLimb ? -this.length : 0
     }
 
-    this.shape.setMatrix(matrix);
+    scene.add(this.shape);
+  }
+  
+  geometry     () { /* abstract */ } // shape of limb (unit size assumed)
+  scalingMatrix() { /* abstract */ } // default scaling applied to the shape
+  
+  initialMatrix() {
+    return translateMat(idMat4(), this.initialPosition.x, this.initialPosition.y, this.initialPosition.z);
+  }
+
+  transformationMatrix() {
+    var transformationMatrix = this.transformation;
+    
+    if (this.parentLimb !== null) {
+      transformationMatrix = multMat(this.parentLimb.transformationMatrix(), this.transformation)
+    }
+
+    return transformationMatrix;
+  }
+
+  addTransformation(transformation, order = "before") {
+    const t1 = order === "after"  ? this.transformation : transformation;
+    const t2 = order === "before" ? this.transformation : transformation;
+
+    this.transformation = multMat(t1, t2);
+  }
+
+  rotateJoint(angle, axis = "y") {
+    const translation = translateMat(this.initialMatrix, this.joint.x,  this.joint.y, this.joint.z)
+    const rotation    = rotateMat(idMat4(), angle, axis);
+
+    this.addTransformation(inverseMat(translation))
+    this.addTransformation(rotation)
+    this.addTransformation(translation)
+  }
+
+  update() {
+    this.shape.setMatrix(multMat(this.transformationMatrix(), this.scalingMatrix()));
   }
 }
 
 class BoxLimb extends Limb {
 
   geometry() {
-    return new THREE.CubeGeometry(this.radius * 2, this.length, this.radius, 64);
+    return new THREE.CubeGeometry(1, 1, 1, 64);
   }
 
-  initialMatrix() {
-    return translateMat(idMat4(), this.initialPosition.x, this.initialPosition.y, this.initialPosition.z);
+  scalingMatrix() {
+    return rescaleMat(idMat4(), this.radius * 2, this.length, this.radius)
   }
 }
 
@@ -314,12 +342,8 @@ class SphereLimb extends Limb {
     return new THREE.SphereGeometry(1, 32, 32);
   }
 
-  initialMatrix() {
-    var matrix = idMat4();
-    matrix = rescaleMat(matrix, this.radius, this.radius, this.length);
-    matrix = translateMat(matrix, this.initialPosition.x, this.initialPosition.y, this.initialPosition.z);
-
-    return matrix;
+  scalingMatrix() {
+    return rescaleMat(idMat4(), this.radius, this.radius, this.length)
   }
 }
 
@@ -344,9 +368,8 @@ class Robot {
 
     this.walkDirection = new THREE.Vector3(0, 0, 1);     // Animation
     this.material      = new THREE.MeshNormalMaterial(); // Material
-
-    // Initial pose
-    this.initialize();
+    
+    this.initialize(); // Initial pose
   }
 
   moveTorso(speed) {
@@ -354,29 +377,73 @@ class Robot {
     var deltaY = speed * this.walkDirection.y
     var deltaZ = speed * this.walkDirection.z
 
-    this.torso.matrix = translateMat(this.torso.matrix, deltaX, deltaY, deltaZ);
+    const translation = translateMat(idMat4(), deltaX, deltaY, deltaZ);
+
+    this.torso.addTransformation(translation);
     this.updateLimbs()
   }
 
   rotateTorso(angle) {
 
-    var rotationMatrix = rotateMat(idMat4(), angle, "y");
-    this.torso.matrix = multMat(this.torso.matrix, rotationMatrix);
-    
+    const rotation = rotateMat(idMat4(), angle, "y")
+
+    this.torso.addTransformation(rotation, "after")
     
     this.updateLimbs()
+
     this.walkDirection = rotateVec3(this.walkDirection, angle, "y");
+
   }
   
   rotateHead(angle) {
-    var rotationMatrix = rotateMat(idMat4(), angle, "y");
-    this.head.matrix = multMat(this.head.matrix, rotationMatrix);
+    const rotation = rotateMat(idMat4(), angle, "y")
 
+    this.head.addTransformation(rotation);
+  
     this.updateLimbs("head")
   }
 
-  rotateArm(angle) {
+  rotateArmR(angle, axis) {
+    this.armR.rotateJoint(angle, axis)
+    this.updateLimbs("armR")
+  }
 
+  rotateArmL(angle, axis) {
+    this.armL.rotateJoint(angle, axis)
+    this.updateLimbs("armL")
+  }
+
+  rotateForearmR(angle) {
+    this.forearmR.rotateJoint(angle, "x")
+    this.updateLimbs("forearmR")
+  }
+
+  rotateForearmL(angle) {
+    this.forearmL.rotateJoint(angle, "x")
+    this.updateLimbs("forearmL")
+  }
+
+  rotateThighR(angle) {
+    this.thighR.rotateJoint(angle, "x")
+    this.updateLimbs("thighR")
+  }
+
+  rotateThighL(angle) {
+    this.thighL.rotateJoint(angle, "x")
+    this.updateLimbs("thighL")
+  }
+
+  rotateLegR(angle) {
+    this.legR.rotateJoint(angle, "x")
+    this.updateLimbs("legR")
+  }
+
+  rotateLegL(angle) {
+    this.legL.rotateJoint(angle, "x")
+    this.updateLimbs("legL")
+  }
+
+  walk() {
   }
 
   updateLimbs(parentLimbName="torso") {
@@ -411,12 +478,12 @@ class Robot {
 
   initialize() {
     // initial positions
-    var torsoPosition    = { x: 0                                                     , y: this.torsoLength + this.thighLength + this.legLength       , z: 0                                                          };
-    var headPosition     = { x: torsoPosition .x                                      , y: torsoPosition .y  + this.torsoLength / 2 + this.headRadius , z: torsoPosition .z                                           };
-    var armRPosition     = { x: torsoPosition .x + this.torsoRadius + this.armRadius  , y: torsoPosition .y  + this.torsoLength / 2 - this.armRadius  , z: torsoPosition .z + this.armLength   - this.torsoRadius / 2 };
-    var thighRPosition   = { x: torsoPosition .x + this.torsoRadius - this.thighRadius, y: torsoPosition .y  - this.torsoLength / 2 - this.thighRadius, z: torsoPosition .z + this.thighLength - this.torsoRadius / 2 };
-    var forearmRPosition = { x: armRPosition  .x                                      , y: armRPosition  .y                                           , z: armRPosition  .z + this.armLength   + this.forearmLength   };
-    var legRPosition     = { x: thighRPosition.x                                      , y: thighRPosition.y                                           , z: thighRPosition.z + this.thighLength + this.legLength       };
+    var torsoPosition    = { x: 0                                      , y:  this.torsoLength / 2 + this.thighRadius + this.thighLength * 2 + this.legLength * 2, z: 0                                       };
+    var headPosition     = { x: 0                                      , y:  this.torsoLength / 2 + this.headRadius                                             , z: 0                                       };
+    var armRPosition     = { x: this.torsoRadius + this.armRadius      , y:  this.torsoLength / 2 - this.armRadius                                              , z: this.armLength                          };
+    var thighRPosition   = { x: this.torsoRadius - this.thighRadius    , y: -this.torsoLength / 2 - this.thighRadius                                            , z: this.thighLength                        };
+    var forearmRPosition = { x: 0                                      , y:  0                                                                                  , z: this.armLength   + this.forearmLength   };
+    var legRPosition     = { x: 0                                      , y:  0                                                                                  , z: this.thighLength + this.legLength       };
 
     var armLPosition     = { x: -armRPosition    .x, y: armRPosition    .y, z: armRPosition    .z };
     var thighLPosition   = { x: -thighRPosition  .x, y: thighRPosition  .y, z: thighRPosition  .z };
@@ -425,15 +492,20 @@ class Robot {
 
     // Limbs
     this.torso    = new BoxLimb   (this.torsoRadius  , this.torsoLength  , torsoPosition   , this.material)
-    this.head     = new BoxLimb   (this.headRadius   , this.headRadius   , headPosition    , this.material, this.torso)
-    this.armR     = new SphereLimb(this.armRadius    , this.armLength    , armRPosition    , this.material, this.torso)
-    this.armL     = new SphereLimb(this.armRadius    , this.armLength    , armLPosition    , this.material, this.torso)
-    this.forearmR = new SphereLimb(this.forearmRadius, this.forearmLength, forearmRPosition, this.material, this.torso)
-    this.forearmL = new SphereLimb(this.forearmRadius, this.forearmLength, forearmLPosition, this.material, this.torso)
-    this.thighR   = new SphereLimb(this.thighRadius  , this.thighLength  , thighRPosition  , this.material, this.torso)
-    this.thighL   = new SphereLimb(this.thighRadius  , this.thighLength  , thighLPosition  , this.material, this.torso)
-    this.legR     = new SphereLimb(this.legRadius    , this.legLength    , legRPosition    , this.material, this.torso)
-    this.legL     = new SphereLimb(this.legRadius    , this.legLength    , legLPosition    , this.material, this.torso)
+    this.head     = new BoxLimb   (this.headRadius   , this.headRadius   , headPosition    , this.material, this.torso )
+    this.armR     = new SphereLimb(this.armRadius    , this.armLength    , armRPosition    , this.material, this.torso )
+    this.armL     = new SphereLimb(this.armRadius    , this.armLength    , armLPosition    , this.material, this.torso )
+    this.forearmR = new SphereLimb(this.forearmRadius, this.forearmLength, forearmRPosition, this.material, this.armR  )
+    this.forearmL = new SphereLimb(this.forearmRadius, this.forearmLength, forearmLPosition, this.material, this.armL  )
+    this.thighR   = new SphereLimb(this.thighRadius  , this.thighLength  , thighRPosition  , this.material, this.torso )
+    this.thighL   = new SphereLimb(this.thighRadius  , this.thighLength  , thighLPosition  , this.material, this.torso )
+    this.legR     = new SphereLimb(this.legRadius    , this.legLength    , legRPosition    , this.material, this.thighR)
+    this.legL     = new SphereLimb(this.legRadius    , this.legLength    , legLPosition    , this.material, this.thighL)
+
+    this.rotateArmR  (Math.PI / 2, "x")
+    this.rotateArmL  (Math.PI / 2, "x")
+    this.rotateThighR(Math.PI / 2)
+    this.rotateThighL(Math.PI / 2)
 
     this.updateLimbs()
   }
@@ -450,8 +522,14 @@ var selectedRobotComponent = 0;
 var components = [
   "Torso",
   "Head",
-  // Add parts names
-  // TODO
+  "ArmR",
+  "ArmL",
+  "ForearmR",
+  "ForearmL",
+  "ThighR",
+  "ThighL",
+  "LegR",
+  "LegL",
 ];
 var numberComponents = components.length;
 
@@ -489,40 +567,65 @@ function checkKeyboard() {
   // UP
   if (keyboard.pressed("w")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso": robot.moveTorso(0.1); break;
-      case "Head" : break;
-      // Add more cases
-      // TODO
+      case "Torso"   : robot.moveTorso     ( 0.1     ); break;
+      case "Head"    : /* do nothing */                 break;
+      case "ArmR"    : robot.rotateArmR    (-0.1, "x"); break;
+      case "ArmL"    : robot.rotateArmL    (-0.1, "x"); break;
+      case "ForearmR": robot.rotateForearmR(-0.1     ); break;
+      case "ForearmL": robot.rotateForearmL(-0.1     ); break;
+      case "ThighR"  : robot.rotateThighR  (-0.1     ); break;
+      case "ThighL"  : robot.rotateThighL  (-0.1     ); break;
+      case "LegR"    : robot.rotateLegR    (-0.1     ); break;
+      case "LegL"    : robot.rotateLegL    (-0.1     ); break;
+
     }
   }
 
   // DOWN
   if (keyboard.pressed("s")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso": robot.moveTorso(-0.1); break;
-      case "Head" : break;
-      // Add more cases
-      // TODO
+      case "Torso"   : robot.moveTorso     (-0.1     ); break;
+      case "Head"    : /* do nothing */                 break;
+      case "ArmR"    : robot.rotateArmR    ( 0.1, "x"); break;
+      case "ArmL"    : robot.rotateArmL    ( 0.1, "x"); break;
+      case "ForearmR": robot.rotateForearmR( 0.1     ); break;
+      case "ForearmL": robot.rotateForearmL( 0.1     ); break;
+      case "ThighR"  : robot.rotateThighR  ( 0.1     ); break;
+      case "ThighL"  : robot.rotateThighL  ( 0.1     ); break;
+      case "LegR"    : robot.rotateLegR    ( 0.1     ); break;
+      case "LegL"    : robot.rotateLegL    ( 0.1     ); break;
     }
   }
 
   // LEFT
   if (keyboard.pressed("a")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso": robot.rotateTorso(0.1); break;
-      case "Head" : robot.rotateHead (0.1); break;
-      // Add more cases
-      // TODO
+      case "Torso"   : robot.rotateTorso( 0.1     ); break;
+      case "Head"    : robot.rotateHead ( 0.1     ); break;
+      case "ArmR"    : robot.rotateArmR (-0.1, "y"); break;
+      case "ArmL"    : robot.rotateArmL (-0.1, "y"); break;
+      case "ForearmR": /* do nothing */              break;
+      case "ForearmL": /* do nothing */              break;
+      case "ThighR"  : /* do nothing */              break;
+      case "ThighL"  : /* do nothing */              break;
+      case "LegR"    : /* do nothing */              break;
+      case "LegL"    : /* do nothing */              break;
     }
   }
 
   // RIGHT
   if (keyboard.pressed("d")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso": robot.rotateTorso(-0.1); break;
-      case "Head" : robot.rotateHead (-0.1); break;
-      // Add more cases
-      // TODO
+      case "Torso"   : robot.rotateTorso(-0.1     ); break;
+      case "Head"    : robot.rotateHead (-0.1     ); break;
+      case "ArmR"    : robot.rotateArmR ( 0.1, "y"); break;
+      case "ArmL"    : robot.rotateArmL ( 0.1, "y"); break;
+      case "ForearmR": /* do nothing */              break;
+      case "ForearmL": /* do nothing */              break;
+      case "ThighR"  : /* do nothing */              break;
+      case "ThighL"  : /* do nothing */              break;
+      case "LegR"    : /* do nothing */              break;
+      case "LegL"    : /* do nothing */              break;
     }
   }
 }
