@@ -99,12 +99,6 @@ function translateMat(matrix, x, y, z) {
 
   // TODO
 
-  // Check if matrix is a THREE.Matrix4 instance
-  if (!(matrix instanceof THREE.Matrix4)) {
-    console.error("Invalid matrix type. Please provide a valid THREE.Matrix4.");
-    return new THREE.Matrix4();
-  }
-
   var m = new THREE.Matrix4();
   var translationMatrix = new THREE.Matrix4();
 
@@ -122,21 +116,12 @@ function rotateMat(matrix, angle, axis) {
   // axis: string "x", "y" or "z"
   // TODO
 
-  // Check if matrix is a THREE.Matrix4 instance
-  if (!(matrix instanceof THREE.Matrix4)) {
-    console.error("Invalid matrix type. Please provide a valid THREE.Matrix4.");
-    return new THREE.Matrix4();
-  }
-
-  // Convert the angle to radians
-  var radians = angle;
-
   // Create a new matrix to store the rotation
   var rotationMatrix = new THREE.Matrix4();
 
   // Calculate sine and cosine values based on the angle
-  var cosTheta = Math.cos(radians);
-  var sinTheta = Math.sin(radians);
+  var cosTheta = Math.cos(angle);
+  var sinTheta = Math.sin(angle);
 
   // Apply rotation based on the specified axis
   switch (axis.toLowerCase()) {
@@ -222,18 +207,9 @@ function rotateVec3(v, angle, axis) {
   // axis: string "x", "y" or "z"
   // TODO
 
-  // Check if v is a THREE.Vector3 instance
-  if (!(v instanceof THREE.Vector3)) {
-    console.error("Invalid vector type. Please provide a valid THREE.Vector3.");
-    return new THREE.Vector3();
-  }
-
-  // Convert the angle to radians
-  var radians = angle;
-
   // Calculate sine and cosine values based on the angle
-  var cosTheta = Math.cos(radians);
-  var sinTheta = Math.sin(radians);
+  var cosTheta = Math.cos(angle);
+  var sinTheta = Math.sin(angle);
 
   // Perform rotation based on the specified axis
   switch (axis.toLowerCase()) {
@@ -269,12 +245,6 @@ function rescaleMat(matrix, x, y, z) {
   // x, y, z: float
   // TODO
 
-  // Check if matrix is a THREE.Matrix4 instance
-  if (!(matrix instanceof THREE.Matrix4)) {
-    console.error("Invalid matrix type. Please provide a valid THREE.Matrix4.");
-    return new THREE.Matrix4();
-  }
-
   var m = new THREE.Matrix4();
   var scalingMatrix = new THREE.Matrix4();
 
@@ -287,96 +257,36 @@ function rescaleMat(matrix, x, y, z) {
   return m;
 }
 
-class Limb {
-  constructor(radius, length, initialPosition, material, parentLimb = null) {
-    this.radius = radius;
-    this.length = length;
-    this.initialPosition = initialPosition;
-    this.parentLimb = parentLimb;
-    this.referenceMatrix = idMat4();
-
-    this.shape = new THREE.Mesh(this.geometry(), material);
-    this.matrix = idMat4();
-    this.initialMatrix = this.initialMatrix();
-
-    scene.add(this.shape);
-  }
-
-  geometry() {
-    /* abstract */
-  }
-  initialMatrix() {
-    /* abstract */
-  }
-
-  update() {
-    var matrix = multMat(this.matrix, this.initialMatrix);
-
-    if (this.parentLimb != null) {
-      // torso
-      matrix = multMat(this.parentLimb.matrix, matrix);
-    }
-
-    this.shape.setMatrix(matrix);
-  }
-}
-
-class BoxLimb extends Limb {
-  geometry() {
-    return new THREE.CubeGeometry(
-      this.radius * 2,
-      this.length,
-      this.radius,
-      64
-    );
-  }
-
-  initialMatrix() {
-    return translateMat(
-      idMat4(),
-      this.initialPosition.x,
-      this.initialPosition.y,
-      this.initialPosition.z
-    );
-  }
-}
-
-class SphereLimb extends Limb {
-  geometry() {
-    return new THREE.SphereGeometry(1, 32, 32);
-  }
-
-  initialMatrix() {
-    var matrix = idMat4();
-    matrix = rescaleMat(matrix, this.radius, this.radius, this.length);
-    matrix = translateMat(
-      matrix,
-      this.initialPosition.x,
-      this.initialPosition.y,
-      this.initialPosition.z
-    );
-
-    return matrix;
-  }
-}
-
 class Robot {
   constructor() {
     // body dimensions:
-    const headsize = 0.64;
+    // const headsize = 0.64;
 
-    this.torsoLength = headsize * 2.7;
-    this.armLength = headsize * 1.25;
-    this.forearmLength = headsize;
-    this.thighLength = headsize * 1.75;
-    this.legLength = headsize * 1.5;
+    // this.torsoLength = headsize * 2.7;
+    // this.leftArmength = headsize * 1.25;
+    // this.foreleftArmength = headsize;
+    // this.thighLength = headsize * 1.75;
+    // this.legLength = headsize * 1.5;
 
-    this.headRadius = headsize / 2;
+    // this.headRadius = headsize / 2;
+    // this.torsoRadius = 0.75;
+    // this.rightArmadius = 0.15;
+    // this.forerightArmadius = 0.12;
+    // this.thighRadius = 0.25;
+    // this.legRadius = 0.2;
+
+    this.torsoHeight = 1.5;
     this.torsoRadius = 0.75;
-    this.armRadius = 0.15;
-    this.forearmRadius = 0.12;
-    this.thighRadius = 0.25;
-    this.legRadius = 0.2;
+    this.headRadius = 0.32;
+
+    this.armsHeight = 0.8;
+    this.armsRadius = 0.3;
+    this.forearmsHeight = 0.4;
+    this.forearmsRadius = 0.2;
+
+    this.lowerHeight = (5 / 4) * this.torsoHeight;
+    this.thighsRadius = this.lowerHeight / 6;
+    this.legsRadius = this.lowerHeight / 6;
 
     this.walkDirection = new THREE.Vector3(0, 0, 1); // Animation
     this.material = new THREE.MeshNormalMaterial(); // Material
@@ -385,245 +295,370 @@ class Robot {
     this.initialize();
   }
 
-  moveTorso(speed) {
-    var deltaX = speed * this.walkDirection.x;
-    var deltaY = speed * this.walkDirection.y;
-    var deltaZ = speed * this.walkDirection.z;
+  // Initial Torso Matrix
+  initialTorsoMatrix() {
+    var initialTorsoMatrix = idMat4();
+    initialTorsoMatrix = translateMat(
+      initialTorsoMatrix,
+      0,
+      this.torsoHeight / 2 + this.lowerHeight,
+      0
+    );
 
-    this.torso.matrix = translateMat(this.torso.matrix, deltaX, deltaY, deltaZ);
-    this.updateLimbs();
+    return initialTorsoMatrix;
   }
 
-  rotateTorso(angle) {
-    var rotationMatrix = rotateMat(idMat4(), angle, "y");
-    this.torso.matrix = multMat(this.torso.matrix, rotationMatrix);
+  // Initial Head Matrix
+  initialHeadMatrix() {
+    var initialHeadMatrix = idMat4();
+    initialHeadMatrix = translateMat(
+      initialHeadMatrix,
+      0,
+      this.torsoHeight / 2 + this.headRadius,
+      0
+    );
 
-    this.updateLimbs();
-    this.walkDirection = rotateVec3(this.walkDirection, angle, "y");
+    return initialHeadMatrix;
   }
 
-  rotateHead(angle) {
-    var rotationMatrix = rotateMat(idMat4(), angle, "y");
-    this.head.matrix = multMat(this.head.matrix, rotationMatrix);
+  // Initial Arms Matrices
+  initialArmsMatrix(side) {
+    var initialArmsMatrix = idMat4();
 
-    this.updateLimbs("head");
+    switch (side) {
+      case "left":
+        initialArmsMatrix = translateMat(
+          initialArmsMatrix,
+          this.torsoRadius * 2.35,
+          this.armsHeight / 3,
+          0
+        );
+        initialArmsMatrix = rescaleMat(initialArmsMatrix, 0.5, 1.5, 0.5);
+        break;
+
+      case "right":
+        initialArmsMatrix = translateMat(
+          initialArmsMatrix,
+          -this.torsoRadius * 2.35,
+          this.armsHeight / 3,
+          0
+        );
+        initialArmsMatrix = rescaleMat(initialArmsMatrix, 0.5, 1.5, 0.5);
+        break;
+
+      default:
+        break;
+    }
+    return initialArmsMatrix;
   }
 
-  // Rotate the arms and forearms around Y-axis
-  rotateArmY(angle) {
-    this.armR.matrix = rotateMat(this.armR.matrix, angle, "y");
-    this.forearmR.matrix = this.armR.matrix;
+  // Initial Forearms Matrices
+  initialForearmsMatrix(side) {
+    var initialForearmsMatrix = idMat4();
 
-    this.armL.matrix = rotateMat(this.armL.matrix, angle, "y");
-
-    this.forearmL.matrix = this.armL.matrix;
-
-    this.updateLimbs("armR");
-    this.updateLimbs("forearmR");
-    this.updateLimbs("armL");
-    this.updateLimbs("forearmL");
-  }
-
-  rotateArmX(angle) {
-    var rotationMatrix = rotateMat(idMat4(), angle, "x");
-
-    this.armR.matrix = rotateMat(this.armR.matrix, angle, "x");
-
-    this.forearmR.matrix = this.armR.matrix;
-
-    this.armL.matrix = rotateMat(idMat4(), angle, "x");
-    this.forearmL.matrix = this.armL.matrix;
-
-    this.updateLimbs("armR");
-    this.updateLimbs("forearmR");
-    // this.updateLimbs("armL");
-    // this.updateLimbs("forearmL");
-  }
-
-  rotateForearm(angle) {
-    this.forearmR.matrix = rotateMat(this.armR.matrix, angle, "y");
-
-    this.forearmL.matrix = rotateMat(this.armL.matrix, angle, "y");
-
-    this.updateLimbs("forearmR");
-    this.updateLimbs("forearmL");
-  }
-
-  updateLimbs(parentLimbName = "torso") {
-    const childLimbs = {
-      torso: ["head", "armR", "armL", "thighR", "thighL"],
-      head: [],
-      armR: ["forearmR"],
-      armL: ["forearmL"],
-      forearmR: [],
-      forearmL: [],
-      thighR: ["legR"],
-      thighL: ["legL"],
-      legR: [],
-      legL: [],
-    };
-
-    switch (parentLimbName) {
-      case "torso":
-        this.torso.update();
+    switch (side) {
+      case "left":
+        initialForearmsMatrix = translateMat(
+          initialForearmsMatrix,
+          this.torsoRadius * 2.35,
+          this.armsHeight * 0.95,
+          0
+        );
+        initialForearmsMatrix = rescaleMat(
+          initialForearmsMatrix,
+          0.5,
+          1.5,
+          0.5
+        );
         break;
-      case "head":
-        this.head.update();
+
+      case "right":
+        initialForearmsMatrix = translateMat(
+          initialForearmsMatrix,
+          -this.torsoRadius * 2.35,
+          this.armsHeight * 0.95,
+          0
+        );
+        initialForearmsMatrix = rescaleMat(
+          initialForearmsMatrix,
+          0.5,
+          1.5,
+          0.5
+        );
         break;
-      case "armR":
-        this.armR.update();
-        break;
-      case "armL":
-        this.armL.update();
-        break;
-      case "forearmR":
-        this.forearmR.update();
-        break;
-      case "forearmL":
-        this.forearmL.update();
-        break;
-      case "thighR":
-        this.thighR.update();
-        break;
-      case "thighL":
-        this.thighL.update();
-        break;
-      case "legR":
-        this.legR.update();
-        break;
-      case "legL":
-        this.legL.update();
+
+      default:
         break;
     }
 
-    childLimbs[parentLimbName].forEach((limb) => this.updateLimbs(limb));
+    return initialForearmsMatrix;
+  }
+
+  // Initial Thighs Matrices
+  initialThighsMatrix(side) {
+    var initialThighsMatrix = idMat4();
+
+    switch (side) {
+      case "left":
+        initialThighsMatrix = translateMat(
+          initialThighsMatrix,
+          this.torsoRadius,
+          (-2 * (this.torsoRadius + this.thighsRadius * 1.5)) / 3,
+          0
+        );
+        initialThighsMatrix = rescaleMat(initialThighsMatrix, 0.75, 1.5, 0.75);
+        break;
+
+      case "right":
+        initialThighsMatrix = translateMat(
+          initialThighsMatrix,
+          -this.torsoRadius,
+          (-2 * (this.torsoRadius + this.thighsRadius * 1.5)) / 3,
+          0
+        );
+        initialThighsMatrix = rescaleMat(initialThighsMatrix, 0.75, 1.5, 0.75);
+        break;
+
+      default:
+        break;
+    }
+
+    return initialThighsMatrix;
+  }
+
+  // Initial Legs Matrices
+  initialLegsMatrix(side) {
+    var initialLegsMatrix = idMat4();
+
+    switch (side) {
+      case "left":
+        initialLegsMatrix = translateMat(
+          initialLegsMatrix,
+          this.torsoRadius * 1.5,
+          (-2 * (this.torsoRadius + this.thighsRadius * 1.5)) / 3 -
+            (this.thighsRadius + this.legsRadius),
+          0
+        );
+        initialLegsMatrix = rescaleMat(initialLegsMatrix, 0.5, 1.5, 0.5);
+        break;
+
+      case "right":
+        initialLegsMatrix = translateMat(
+          initialLegsMatrix,
+          -this.torsoRadius * 1.5,
+          (-2 * (this.torsoRadius + this.thighsRadius * 1.5)) / 3 -
+            (this.thighsRadius + this.legsRadius),
+          0
+        );
+        initialLegsMatrix = rescaleMat(initialLegsMatrix, 0.5, 1.5, 0.5);
+        break;
+
+      default:
+        break;
+    }
+
+    return initialLegsMatrix;
   }
 
   initialize() {
-    // initial positions
-    var torsoPosition = {
-      x: 0,
-      y: this.torsoLength + this.thighLength + this.legLength,
-      z: 0,
-    };
-    var headPosition = {
-      x: torsoPosition.x,
-      y: torsoPosition.y + this.torsoLength / 2 + this.headRadius,
-      z: torsoPosition.z,
-    };
-    var armRPosition = {
-      x: torsoPosition.x + this.torsoRadius + this.armRadius,
-      y: torsoPosition.y + this.torsoLength / 2 - this.armRadius,
-      z: torsoPosition.z + this.armLength - this.torsoRadius / 2,
-    };
-    var forearmRPosition = {
-      x: armRPosition.x,
-      y: armRPosition.y,
-      z: armRPosition.z + this.armLength + this.forearmLength,
-    };
-    var thighRPosition = {
-      x: torsoPosition.x + this.torsoRadius - this.thighRadius,
-      y: torsoPosition.y - this.torsoLength / 2 - this.thighRadius,
-      z: torsoPosition.z + this.thighLength - this.torsoRadius / 2,
-    };
-    var legRPosition = {
-      x: thighRPosition.x,
-      y: thighRPosition.y,
-      z: thighRPosition.z + this.thighLength + this.legLength,
-    };
-    var armLPosition = {
-      x: -armRPosition.x,
-      y: armRPosition.y,
-      z: armRPosition.z,
-    };
-    var thighLPosition = {
-      x: -thighRPosition.x,
-      y: thighRPosition.y,
-      z: thighRPosition.z,
-    };
-    var forearmLPosition = {
-      x: -forearmRPosition.x,
-      y: forearmRPosition.y,
-      z: forearmRPosition.z,
-    };
-    var legLPosition = {
-      x: -legRPosition.x,
-      y: legRPosition.y,
-      z: legRPosition.z,
-    };
+    // --------------------------------------------------------------------------------------
+    // Add parts
+    // Torso
 
-    // Limbs
-    this.torso = new BoxLimb(
+    var torsoGeometry = new THREE.CubeGeometry(
+      2 * this.torsoRadius,
+      this.torsoHeight,
       this.torsoRadius,
-      this.torsoLength,
-      torsoPosition,
-      this.material
+      64
     );
-    this.head = new BoxLimb(
+    this.torso = new THREE.Mesh(torsoGeometry, this.material);
+
+    // Head
+    var headGeometry = new THREE.CubeGeometry(
+      2 * this.headRadius,
       this.headRadius,
-      this.headRadius,
-      headPosition,
-      this.material,
-      this.torso
+      this.headRadius
     );
-    this.armR = new SphereLimb(
-      this.armRadius,
-      this.armLength,
-      armRPosition,
-      this.material,
-      this.torso
+    this.head = new THREE.Mesh(headGeometry, this.material);
+
+    // Arms
+    var armsGeometry = new THREE.SphereGeometry(this.armsRadius, 32, 32);
+    this.rightArm = new THREE.Mesh(armsGeometry, this.material);
+    this.leftArm = new THREE.Mesh(armsGeometry, this.material);
+
+    //Forearms
+    var forearmsGeometry = new THREE.SphereGeometry(
+      this.forearmsRadius,
+      32,
+      32
     );
-    this.armL = new SphereLimb(
-      this.armRadius,
-      this.armLength,
-      armLPosition,
-      this.material,
-      this.torso
-    );
-    this.forearmR = new SphereLimb(
-      this.forearmRadius,
-      this.forearmLength,
-      forearmRPosition,
-      this.material,
-      this.torso
-    );
-    this.forearmL = new SphereLimb(
-      this.forearmRadius,
-      this.forearmLength,
-      forearmLPosition,
-      this.material,
-      this.torso
-    );
-    this.thighR = new SphereLimb(
-      this.thighRadius,
-      this.thighLength,
-      thighRPosition,
-      this.material,
-      this.torso
-    );
-    this.thighL = new SphereLimb(
-      this.thighRadius,
-      this.thighLength,
-      thighLPosition,
-      this.material,
-      this.torso
-    );
-    this.legR = new SphereLimb(
-      this.legRadius,
-      this.legLength,
-      legRPosition,
-      this.material,
-      this.torso
-    );
-    this.legL = new SphereLimb(
-      this.legRadius,
-      this.legLength,
-      legLPosition,
-      this.material,
-      this.torso
+    this.rightForearm = new THREE.Mesh(forearmsGeometry, this.material);
+    this.leftForearm = new THREE.Mesh(forearmsGeometry, this.material);
+
+    //Thighs
+    var thighsGeometry = new THREE.SphereGeometry(this.thighsRadius, 32, 32);
+    this.leftThigh = new THREE.Mesh(thighsGeometry, this.material);
+    this.rightThigh = new THREE.Mesh(thighsGeometry, this.material);
+
+    //Legs
+    var legsGeometry = new THREE.SphereGeometry(this.legsRadius, 32, 32);
+    this.leftLeg = new THREE.Mesh(legsGeometry, this.material);
+    this.rightLeg = new THREE.Mesh(legsGeometry, this.material);
+
+    // --------------------------------------------------------------------------------------
+    // Transformations
+
+    // Torse transformation
+    this.torsoInitialMatrix = this.initialTorsoMatrix();
+    this.torsoMatrix = idMat4();
+    this.torso.setMatrix(this.torsoInitialMatrix);
+
+    // Head transformation
+    this.headInitialMatrix = this.initialHeadMatrix();
+    this.headMatrix = idMat4();
+    var matrix = multMat(this.torsoInitialMatrix, this.headInitialMatrix);
+    this.head.setMatrix(matrix);
+
+    // Arms transformation
+    // Left arm
+    this.leftArmInitialMatrix = this.initialArmsMatrix("left");
+    this.leftArmMatrix = idMat4();
+    this.leftArm.setMatrix(
+      multMat(this.torsoInitialMatrix, this.leftArmInitialMatrix)
     );
 
-    this.updateLimbs();
+    // Right arm
+    this.rightArmInitialMatrix = this.initialArmsMatrix("right");
+    this.rightArmMatrix = idMat4();
+    this.rightArm.setMatrix(
+      multMat(this.torsoInitialMatrix, this.rightArmInitialMatrix)
+    );
+
+    // Forearms transformation
+    // Left forearm
+    this.leftForearmInitialMatrix = this.initialForearmsMatrix("left");
+    this.leftForearmMatrix = idMat4();
+    this.leftForearm.setMatrix(
+      multMat(this.torsoInitialMatrix, this.leftForearmInitialMatrix)
+    );
+
+    // Right forearm
+    this.rightForearmInitialMatrix = this.initialForearmsMatrix("right");
+    this.rightForearmMatrix = idMat4();
+    this.rightForearm.setMatrix(
+      multMat(this.torsoInitialMatrix, this.rightForearmInitialMatrix)
+    );
+
+    // Legs transformation
+    // Left leg
+    this.leftLegInitialMatrix = this.initialLegsMatrix("left");
+    this.leftLegMatrix = idMat4();
+    this.leftLeg.setMatrix(
+      multMat(this.torsoInitialMatrix, this.leftLegInitialMatrix)
+    );
+
+    // Right leg
+    this.rightLegInitialMatrix = this.initialLegsMatrix("right");
+    this.rightLegMatrix = idMat4();
+    this.rightLeg.setMatrix(
+      multMat(this.torsoInitialMatrix, this.rightLegInitialMatrix)
+    );
+
+    //Thighs transformation
+    // Left thigh
+    this.leftThighInitialMatrix = this.initialThighsMatrix("left");
+    this.leftThighMatrix = idMat4();
+    this.leftThigh.setMatrix(
+      multMat(this.torsoInitialMatrix, this.leftThighInitialMatrix)
+    );
+
+    // Right thigh
+    this.rightThighInitialMatrix = this.initialThighsMatrix("right");
+    this.rightThighMatrix = idMat4();
+    this.rightThigh.setMatrix(
+      multMat(this.torsoInitialMatrix, this.rightThighInitialMatrix)
+    );
+
+    // Legs transformation
+    // Left leg
+    this.leftLegInitialMatrix = this.initialLegsMatrix("left");
+    this.leftLegMatrix = idMat4();
+    var matrix8 = multMat(this.torsoInitialMatrix, this.leftLegInitialMatrix);
+    this.leftLeg.setMatrix(matrix8);
+
+    // Right leg
+    this.rightLegInitialMatrix = this.initialLegsMatrix("right");
+    this.rightLegMatrix = idMat4();
+    var matrix9 = multMat(this.torsoInitialMatrix, this.rightLegInitialMatrix);
+    this.rightLeg.setMatrix(matrix9);
+
+    // Add robot to scene
+    scene.add(this.torso);
+    scene.add(this.head);
+    scene.add(this.leftArm);
+    scene.add(this.rightArm);
+    scene.add(this.leftForearm);
+    scene.add(this.rightForearm);
+    scene.add(this.leftThigh);
+    scene.add(this.rightThigh);
+    scene.add(this.leftLeg);
+    scene.add(this.rightLeg);
+
+    //Saved variables for animation later
+    this.totalAngle1 = 0; //Pour l'angle de la jambe
+    this.halfWalk = true; //Pour si l'animation avance ou recule
+  }
+
+  rotateTorso(angle) {
+    // Given codes
+    var torsoMatrix = this.torsoMatrix;
+
+    this.torsoMatrix = idMat4();
+    this.torsoMatrix = rotateMat(this.torsoMatrix, angle, "y");
+    this.torsoMatrix = multMat(torsoMatrix, this.torsoMatrix);
+
+    var matrix = multMat(this.torsoMatrix, this.torsoInitialMatrix);
+    this.torso.setMatrix(matrix);
+
+    var matrix2 = multMat(this.headMatrix, this.headInitialMatrix);
+    matrix = multMat(matrix, matrix2);
+    this.head.setMatrix(matrix);
+    // Given codes
+
+    
+
+    //Attaching various body parts to the torso movement
+
+    this.walkDirection = rotateVec3(this.walkDirection, angle, "y");
+  }
+
+  moveTorso(speed) {
+    this.torsoMatrix = translateMat(
+      this.torsoMatrix,
+      speed * this.walkDirection.x,
+      speed * this.walkDirection.y,
+      speed * this.walkDirection.z
+    );
+
+    var matrix = multMat(this.torsoMatrix, this.torsoInitialMatrix);
+    this.torso.setMatrix(matrix);
+
+    var matrix2 = multMat(this.headMatrix, this.headInitialMatrix);
+    matrix = multMat(matrix, matrix2);
+    this.head.setMatrix(matrix);
+  }
+
+  rotateHead(angle) {
+    var headMatrix = this.headMatrix;
+
+    this.headMatrix = idMat4();
+    this.headMatrix = rotateMat(this.headMatrix, angle, "y");
+    this.headMatrix = multMat(headMatrix, this.headMatrix);
+
+    var matrix = multMat(this.headMatrix, this.headInitialMatrix);
+    matrix = multMat(this.torsoMatrix, matrix);
+    matrix = multMat(this.torsoInitialMatrix, matrix);
+    this.head.setMatrix(matrix);
   }
 }
 
@@ -637,8 +672,14 @@ var selectedRobotComponent = 0;
 var components = [
   "Torso",
   "Head",
-  "Arms",
-  "Forearms",
+  "Left forearm",
+  "Left arm",
+  "Right forearm",
+  "Right arm",
+  "Left thigh",
+  "Left leg",
+  "Right thigh",
+  "Right leg",
 
   // Add parts names
   // TODO
@@ -684,13 +725,22 @@ function checkKeyboard() {
         break;
       case "Head":
         break;
-      case "Arms":
-        robot.rotateArmX(0.05);
+      case "Left arm":
         break;
-      case "Forearms":
+      case "Left forearm":
         break;
-      // Add more cases
-      // TODO
+      case "Right arm":
+        break;
+      case "Right forearm":
+        break;
+      case "Left thigh":
+        break;
+      case "Left leg":
+        break;
+      case "Right thigh":
+        break;
+      case "Right leg":
+        break;
     }
   }
 
@@ -702,13 +752,22 @@ function checkKeyboard() {
         break;
       case "Head":
         break;
-      case "Arms":
-        robot.rotateArmX(-0.05);
+      case "Left arm":
         break;
-      case "Forearms":
+      case "Left forearm":
         break;
-      // Add more cases
-      // TODO
+      case "Right arm":
+        break;
+      case "Right forearm":
+        break;
+      case "Left thigh":
+        break;
+      case "Left leg":
+        break;
+      case "Right thigh":
+        break;
+      case "Right leg":
+        break;
     }
   }
 
@@ -721,14 +780,22 @@ function checkKeyboard() {
       case "Head":
         robot.rotateHead(0.1);
         break;
-      case "Arms":
-        robot.rotateArmY(0.05);
+      case "Left arm":
         break;
-      case "Forearms":
-        robot.rotateForearm(-0.05);
+      case "Left forearm":
         break;
-      // Add more cases
-      // TODO
+      case "Right arm":
+        break;
+      case "Right forearm":
+        break;
+      case "Left thigh":
+        break;
+      case "Left leg":
+        break;
+      case "Right thigh":
+        break;
+      case "Right leg":
+        break;
     }
   }
 
@@ -741,14 +808,22 @@ function checkKeyboard() {
       case "Head":
         robot.rotateHead(-0.1);
         break;
-      case "Arms":
-        robot.rotateArmY(-0.05);
+      case "Left arm":
         break;
-      case "Forearms":
-        robot.rotateForearm(0.05);
+      case "Left forearm":
         break;
-      // Add more cases
-      // TODO
+      case "Right arm":
+        break;
+      case "Right forearm":
+        break;
+      case "Left thigh":
+        break;
+      case "Left leg":
+        break;
+      case "Right thigh":
+        break;
+      case "Right leg":
+        break;
     }
   }
 }
