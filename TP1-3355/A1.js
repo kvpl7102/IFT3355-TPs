@@ -53,28 +53,6 @@ floor.position.y = 0.0;
 
 scene.add(floor);
 
-// draw X,Y,Z axes
-var axisGeometry = new THREE.BoxGeometry(5, 0.1, 0.1);
-
-var materialX = new THREE.MeshBasicMaterial();
-var materialY = new THREE.MeshBasicMaterial();
-var materialZ = new THREE.MeshBasicMaterial();
-
-materialX.color.set(new THREE.Color("red"));
-materialY.color.set(new THREE.Color("green"));
-materialZ.color.set(new THREE.Color("orange"));
-
-var axisX = new THREE.Mesh(axisGeometry, materialX);
-var axisY = new THREE.Mesh(axisGeometry, materialY);
-var axisZ = new THREE.Mesh(axisGeometry, materialZ);
-
-axisY.rotation.z = Math.PI / 2;
-axisZ.rotation.y = Math.PI / 2;
-
-scene.add(axisX);
-scene.add(axisY);
-scene.add(axisZ);
-
 // TRANSFORMATIONS
 
 function multMat(m1, m2) {
@@ -391,8 +369,8 @@ class Robot {
     this.torsoLength = headsize * 3;
     this.armLength = headsize * 1.25;
     this.forearmLength = headsize;
-    this.thighLength = headsize * 1.75;
-    this.legLength = headsize * 1.5;
+    this.thighLength = headsize * 1.5;
+    this.legLength = headsize * 1.25;
 
     this.headRadius = headsize / 2;
     this.torsoRadius = 0.75;
@@ -670,32 +648,33 @@ class Robot {
     speed = Math.abs(speed);
 
     if (this.thighAngle <= -0.5) {
-      this.rotateThighL(-speed);
-      this.rotateThighR(speed);
-      this.rotateArmL(-speed);
-      this.rotateArmR(speed);
+      this.rotateThighL(speed);
+      this.rotateThighR(-speed);
+      this.rotateArmL(speed);
+      this.rotateArmR(-speed);
 
       this.thighAngle += speed;
       this.halfWalk = true;
     } else if (this.thighAngle >= 0.5) {
-      this.rotateThighL(speed);
-      this.rotateThighR(-speed);
-      this.rotateArmL(speed);
-      this.rotateArmR(-speed);
-
-      this.thighAngle -= speed;
-      this.halfWalk = false;
-    } else if (this.halfWalk) {
       this.rotateThighL(-speed);
       this.rotateThighR(speed);
       this.rotateArmL(-speed);
       this.rotateArmR(speed);
-      this.thighAngle += speed;
-    } else if (!this.halfWalk) {
+
+      this.thighAngle -= speed;
+      this.halfWalk = false;
+    }
+    if (this.halfWalk) {
       this.rotateThighL(speed);
       this.rotateThighR(-speed);
       this.rotateArmL(speed);
       this.rotateArmR(-speed);
+      this.thighAngle += speed;
+    } else if (!this.halfWalk) {
+      this.rotateThighL(-speed);
+      this.rotateThighR(speed);
+      this.rotateArmL(-speed);
+      this.rotateArmR(speed);
       this.thighAngle -= speed;
     }
 
@@ -706,14 +685,15 @@ class Robot {
   adjustWalk() {
     var walkDirectionTemp = this.walkDirection;
 
-    // Determine the position (on y-axis) of the legs relative to the ground 
+    // Determine the position (on y-axis) of the legs relative to the ground
     var leftY = this.legL.shape.position.y;
     var rightY = this.legL.shape.position.y;
+    var coeffY = 5 * this.legLength; // coefficient such that legs stay on ground while walking
 
     if (leftY - rightY < 0) {
-      var yMove = -leftY + 1.5 * this.legRadius * Math.cos(this.thighAngle);
+      var yMove = -leftY + coeffY * this.legRadius * Math.cos(this.thighAngle);
     } else {
-      var yMove = -rightY + 1.5 * this.legRadius * Math.cos(this.thighAngle);
+      var yMove = -rightY + coeffY * this.legRadius * Math.cos(this.thighAngle);
     }
 
     this.walkDirection = new THREE.Vector3(0, yMove, 0);
