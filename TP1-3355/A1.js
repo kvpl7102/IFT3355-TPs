@@ -295,13 +295,11 @@ class Limb {
   }
 
   transformationMatrix() {
-    var transformationMatrix = this.transformation;
-    
-    if (this.parentLimb !== null) {
-      transformationMatrix = multMat(this.parentLimb.transformationMatrix(), this.transformation)
+    if (this.parentLimb === null) {
+      return this.transformation  
     }
 
-    return transformationMatrix;
+    return multMat(this.parentLimb.transformationMatrix(), this.transformation);
   }
 
   addTransformation(transformation, order = "before") {
