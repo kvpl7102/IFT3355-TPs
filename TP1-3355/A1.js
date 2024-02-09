@@ -7,6 +7,8 @@ THREE.Object3D.prototype.setMatrix = function (a) {
 // SETUP RENDERER AND SCENE
 var start = Date.now();
 var scene = new THREE.Scene();
+var start = Date.now();
+var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer();
 
 renderer.setClearColor(0xffffff);
@@ -75,109 +77,68 @@ function translateMat(matrix, x, y, z) {
   // matrix: THREE.Matrix4
   // x, y, z: float
 
-  // TODO
-
   // Check if matrix is a THREE.Matrix4 instance
   if (!(matrix instanceof THREE.Matrix4)) {
     console.error("Invalid matrix type. Please provide a valid THREE.Matrix4.");
     return new THREE.Matrix4();
   }
 
-  var m = new THREE.Matrix4();
   var translationMatrix = new THREE.Matrix4();
 
-  translationMatrix.set(1, 0, 0, x, 0, 1, 0, y, 0, 0, 1, z, 0, 0, 0, 1);
+  translationMatrix.set(
+    1, 0, 0, x,
+    0, 1, 0, y,
+    0, 0, 1, z,
+    0, 0, 0, 1
+  );
 
-  m = multMat(translationMatrix, matrix);
-
-  return m;
+  return multMat(translationMatrix, matrix);
 }
 
 function rotateMat(matrix, angle, axis) {
   // Apply rotation by @angle with respect to @axis to @matrix
   // matrix: THREE.Matrix4
-  // angle: float
+  // angle: float (we assume it's in radians)
   // axis: string "x", "y" or "z"
-  // TODO
 
-  // Check if matrix is a THREE.Matrix4 instance
   if (!(matrix instanceof THREE.Matrix4)) {
     console.error("Invalid matrix type. Please provide a valid THREE.Matrix4.");
     return new THREE.Matrix4();
   }
 
-  // Convert the angle to radians
-  var radians = angle;
-
   // Create a new matrix to store the rotation
   var rotationMatrix = new THREE.Matrix4();
 
   // Calculate sine and cosine values based on the angle
-  var cosTheta = Math.cos(radians);
-  var sinTheta = Math.sin(radians);
+  var cosTheta = Math.cos(angle);
+  var sinTheta = Math.sin(angle);
 
   // Apply rotation based on the specified axis
   switch (axis.toLowerCase()) {
     case "x":
       rotationMatrix.set(
-        1,
-        0,
-        0,
-        0,
-        0,
-        cosTheta,
-        -sinTheta,
-        0,
-        0,
-        sinTheta,
-        cosTheta,
-        0,
-        0,
-        0,
-        0,
-        1
+        1, 0       , 0        , 0,
+        0, cosTheta, -sinTheta, 0,
+        0, sinTheta,  cosTheta, 0,
+        0, 0       , 0        , 1,
       );
       break;
 
     case "y":
       rotationMatrix.set(
-        cosTheta,
-        0,
-        sinTheta,
-        0,
-        0,
-        1,
-        0,
-        0,
-        -sinTheta,
-        0,
-        cosTheta,
-        0,
-        0,
-        0,
-        0,
-        1
+         cosTheta, 0, sinTheta, 0,
+         0       , 1, 0       , 0,
+        -sinTheta, 0, cosTheta, 0,
+         0       , 0, 0       , 1,
       );
       break;
 
     case "z":
       rotationMatrix.set(
-        cosTheta,
-        -sinTheta,
-        0,
-        0,
-        sinTheta,
-        cosTheta,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        1
+        cosTheta, -sinTheta, 0, 0,
+        sinTheta,  cosTheta, 0, 0,
+        0       , 0        , 1, 0,
+        0       , 0        , 0, 1,
       );
       break;
 
@@ -186,32 +147,22 @@ function rotateMat(matrix, angle, axis) {
       return matrix;
   }
 
-  // Multiply the original matrix by the rotation matrix to apply the rotation
-  var m = new THREE.Matrix4();
-  m = multMat(rotationMatrix, matrix);
-
-  return m;
+  return multMat(rotationMatrix, matrix); // apply the rotation
 }
 
 function rotateVec3(v, angle, axis) {
   // Apply rotation by @angle with respect to @axis to vector @v
   // v: THREE.Vector3
-  // angle: float
+  // angle: float (we assume it's in radians)
   // axis: string "x", "y" or "z"
-  // TODO
 
-  // Check if v is a THREE.Vector3 instance
   if (!(v instanceof THREE.Vector3)) {
     console.error("Invalid vector type. Please provide a valid THREE.Vector3.");
     return new THREE.Vector3();
   }
 
-  // Convert the angle to radians
-  var radians = angle;
-
-  // Calculate sine and cosine values based on the angle
-  var cosTheta = Math.cos(radians);
-  var sinTheta = Math.sin(radians);
+  var cosTheta = Math.cos(angle);
+  var sinTheta = Math.sin(angle);
 
   // Perform rotation based on the specified axis
   switch (axis.toLowerCase()) {
@@ -245,24 +196,23 @@ function rescaleMat(matrix, x, y, z) {
   // Apply scaling @x, @y and @z to @matrix
   // matrix: THREE.Matrix3
   // x, y, z: float
-  // TODO
 
-  // Check if matrix is a THREE.Matrix4 instance
   if (!(matrix instanceof THREE.Matrix4)) {
     console.error("Invalid matrix type. Please provide a valid THREE.Matrix4.");
     return new THREE.Matrix4();
   }
 
-  var m = new THREE.Matrix4();
   var scalingMatrix = new THREE.Matrix4();
 
   // Set the scaling values in the appropriate positions
-  scalingMatrix.set(x, 0, 0, 0, 0, y, 0, 0, 0, 0, z, 0, 0, 0, 0, 1);
+  scalingMatrix.set(
+    x, 0, 0, 0,
+    0, y, 0, 0,
+    0, 0, z, 0,
+    0, 0, 0, 1
+  );
 
-  // Multiply the original matrix by the scaling matrix to apply the scaling
-  m = multMat(scalingMatrix, matrix);
-
-  return m;
+  return multMat(scalingMatrix, matrix); //apply the scaling
 }
 
 class Limb {
@@ -270,26 +220,22 @@ class Limb {
     this.radius = radius;
     this.length = length;
     this.initialPosition = initialPosition;
-    this.parentLimb = parentLimb;
+    this.parentLimb      = parentLimb;
 
-    this.shape = new THREE.Mesh(this.geometry(), material);
-    this.initialMatrix = this.initialMatrix();
+    this.shape          = new THREE.Mesh(this.geometry(), material);
+    this.initialMatrix  = this.initialMatrix();
     this.transformation = this.initialMatrix;
-    this.joint = {
+    this.joint          = { 
       x: 0,
       y: 0,
-      z: this.parentLimb ? -this.length : 0,
+      z: this.parentLimb ? -this.length : 0  // joint is always at the beginning of limb
     };
 
     scene.add(this.shape);
   }
 
-  geometry() {
-    /* abstract */
-  } // shape of limb (unit size assumed)
-  scalingMatrix() {
-    /* abstract */
-  } // default scaling applied to the shape
+  geometry     () { /* abstract */ } // shape of limb (unit size assumed)
+  scalingMatrix() { /* abstract */ } // default scaling applied to the shape
 
   initialMatrix() {
     return translateMat(
@@ -301,8 +247,8 @@ class Limb {
   }
 
   transformationMatrix() {
-    if (this.parentLimb === null) {
-      return this.transformation  
+    if (this.parentLimb === null) { // limb is torso
+      return this.transformation;  
     }
 
     return multMat(this.parentLimb.transformationMatrix(), this.transformation);
@@ -316,13 +262,8 @@ class Limb {
   }
 
   rotateJoint(angle, axis = "y") {
-    const translation = translateMat(
-      this.initialMatrix,
-      this.joint.x,
-      this.joint.y,
-      this.joint.z
-    );
-    const rotation = rotateMat(idMat4(), angle, axis);
+    const translation = translateMat(this.initialMatrix, this.joint.x, this.joint.y, this.joint.z);
+    const rotation    = rotateMat(idMat4(), angle, axis);
 
     this.addTransformation(inverseMat(translation));
     this.addTransformation(rotation);
@@ -357,25 +298,30 @@ class SphereLimb extends Limb {
 }
 
 class Robot {
+  
   constructor() {
-    // body dimensions:
     const headsize = 0.64;
 
-    this.torsoLength = headsize * 3;
-    this.armLength = headsize * 1.25;
+    this.torsoLength   = headsize * 3;
+    this.armLength     = headsize * 1.25;
     this.forearmLength = headsize;
-    this.thighLength = headsize * 1.5;
-    this.legLength = headsize * 1.25;
+    this.thighLength   = headsize * 1.5;
+    this.legLength     = headsize * 1.25;
 
-    this.headRadius = headsize / 2;
-    this.torsoRadius = 0.75;
-    this.armRadius = 0.15;
+    this.headRadius    = headsize / 2;
+    this.torsoRadius   = 0.75;
+    this.armRadius     = 0.15;
     this.forearmRadius = 0.12;
-    this.thighRadius = 0.25;
-    this.legRadius = 0.2;
+    this.thighRadius   = 0.25;
+    this.legRadius     = 0.20;
 
     this.walkDirection = new THREE.Vector3(0, 0, 1); // Animation
-    this.material = new THREE.MeshNormalMaterial(); // Material
+    this.material      = new THREE.MeshNormalMaterial(); // Material
+
+    // walk animation status
+    this.stepRCompleted    = false; // if this is true, right leg is the forward leg
+    this.legLifted         = false; // if this is true, forward leg is completely lifted and must now go down
+    this.animationProgress = 0;
 
     this.initialize(); // Initial pose
   }
@@ -453,16 +399,16 @@ class Robot {
 
   updateLimbs(parentLimbName = "torso") {
     const childLimbs = {
-      torso: ["head", "armR", "armL", "thighR", "thighL"],
-      head: [],
-      armR: ["forearmR"],
-      armL: ["forearmL"],
+      torso   : ["head", "armR", "armL", "thighR", "thighL"],
+      head    : [],
+      armR    : ["forearmR"],
+      armL    : ["forearmL"],
       forearmR: [],
       forearmL: [],
-      thighR: ["legR"],
-      thighL: ["legL"],
-      legR: [],
-      legL: [],
+      thighR  : ["legR"],
+      thighL  : ["legL"],
+      legR    : [],
+      legL    : [],
     };
 
     switch (parentLimbName) {
@@ -498,41 +444,17 @@ class Robot {
         break;
     }
 
-    childLimbs[parentLimbName].forEach((limb) => this.updateLimbs(limb));
+    childLimbs[parentLimbName].forEach((limb) => this.updateLimbs(limb)); // update child limbs recursively
   }
 
   initialize() {
     // initial positions
-    var torsoPosition = {
-      x: 0,
-      y:
-        this.torsoLength / 2 +
-        this.thighRadius +
-        this.thighLength * 2 +
-        this.legLength * 2,
-      z: 0,
-    };
-    var headPosition = {
-      x: 0,
-      y: this.torsoLength / 2 + this.headRadius,
-      z: 0,
-    };
-    var armRPosition = {
-      x: this.torsoRadius + this.armRadius,
-      y: this.torsoLength / 2 - this.armRadius,
-      z: this.armLength,
-    };
-    var thighRPosition = {
-      x: this.torsoRadius - this.thighRadius,
-      y: -this.torsoLength / 2 - this.thighRadius,
-      z: this.thighLength,
-    };
-    var forearmRPosition = {
-      x: 0,
-      y: 0,
-      z: this.armLength + this.forearmLength,
-    };
-    var legRPosition = { x: 0, y: 0, z: this.thighLength + this.legLength };
+    var torsoPosition    = { x: 0                                  , y:  this.torsoLength / 2 + this.thighRadius + this.thighLength * 2 + this.legLength * 2, z: 0                                     };
+    var headPosition     = { x: 0                                  , y:  this.torsoLength / 2 + this.headRadius                                             , z: 0                                     };
+    var armRPosition     = { x: this.torsoRadius + this.armRadius  , y:  this.torsoLength / 2 - this.armRadius                                              , z: this.armLength                        };
+    var thighRPosition   = { x: this.torsoRadius - this.thighRadius, y: -this.torsoLength / 2 - this.thighRadius                                            , z: this.thighLength                      };
+    var forearmRPosition = { x: 0                                  , y: 0                                                                                   , z: this.armLength   + this.forearmLength };
+    var legRPosition     = { x: 0                                  , y: 0                                                                                   , z: this.thighLength + this.legLength     };
 
     var armLPosition = {
       x: -armRPosition.x,
@@ -556,145 +478,80 @@ class Robot {
     };
 
     // Limbs
-    this.torso = new BoxLimb(
-      this.torsoRadius,
-      this.torsoLength,
-      torsoPosition,
-      this.material
-    );
-    this.head = new BoxLimb(
-      this.headRadius,
-      this.headRadius,
-      headPosition,
-      this.material,
-      this.torso
-    );
-    this.armR = new SphereLimb(
-      this.armRadius,
-      this.armLength,
-      armRPosition,
-      this.material,
-      this.torso
-    );
-    this.armL = new SphereLimb(
-      this.armRadius,
-      this.armLength,
-      armLPosition,
-      this.material,
-      this.torso
-    );
-    this.forearmR = new SphereLimb(
-      this.forearmRadius,
-      this.forearmLength,
-      forearmRPosition,
-      this.material,
-      this.armR
-    );
-    this.forearmL = new SphereLimb(
-      this.forearmRadius,
-      this.forearmLength,
-      forearmLPosition,
-      this.material,
-      this.armL
-    );
-    this.thighR = new SphereLimb(
-      this.thighRadius,
-      this.thighLength,
-      thighRPosition,
-      this.material,
-      this.torso
-    );
-    this.thighL = new SphereLimb(
-      this.thighRadius,
-      this.thighLength,
-      thighLPosition,
-      this.material,
-      this.torso
-    );
-    this.legR = new SphereLimb(
-      this.legRadius,
-      this.legLength,
-      legRPosition,
-      this.material,
-      this.thighR
-    );
-    this.legL = new SphereLimb(
-      this.legRadius,
-      this.legLength,
-      legLPosition,
-      this.material,
-      this.thighL
-    );
+    this.torso    = new BoxLimb   (this.torsoRadius  , this.torsoLength  , torsoPosition   , this.material,            );
+    this.head     = new BoxLimb   (this.headRadius   , this.headRadius   , headPosition    , this.material, this.torso );
+    this.armR     = new SphereLimb(this.armRadius    , this.armLength    , armRPosition    , this.material, this.torso );
+    this.armL     = new SphereLimb(this.armRadius    , this.armLength    , armLPosition    , this.material, this.torso );
+    this.forearmR = new SphereLimb(this.forearmRadius, this.forearmLength, forearmRPosition, this.material, this.armR  );
+    this.forearmL = new SphereLimb(this.forearmRadius, this.forearmLength, forearmLPosition, this.material, this.armL  );
+    this.thighR   = new SphereLimb(this.thighRadius  , this.thighLength  , thighRPosition  , this.material, this.torso );
+    this.thighL   = new SphereLimb(this.thighRadius  , this.thighLength  , thighLPosition  , this.material, this.torso );
+    this.legR     = new SphereLimb(this.legRadius    , this.legLength    , legRPosition    , this.material, this.thighR);
+    this.legL     = new SphereLimb(this.legRadius    , this.legLength    , legLPosition    , this.material, this.thighL);
 
-    this.rotateArmR(Math.PI / 2, "x");
-    this.rotateArmL(Math.PI / 2, "x");
+    this.rotateArmR  (Math.PI / 2, "x");
+    this.rotateArmL  (Math.PI / 2, "x");
     this.rotateThighR(Math.PI / 2);
     this.rotateThighL(Math.PI / 2);
 
     this.updateLimbs();
 
-    this.thighAngle = 0; // Angle of thighs
-    this.halfWalk = true; // Determine if animation is moving forward or backward
+  }
+
+  adjustHeight() {
+    
+    const lowestY = Math.min(this.legR.shape.position.y, this.legL.shape.position.y);
+    
+    const translation = translateMat(idMat4(), 0, this.legLength - lowestY, 0)
+
+    this.torso.addTransformation(translation)
   }
 
   // Walking animation
-  walkAnimation(speed) {
+  walk(speed) {
     this.moveTorso(speed);
-    speed = Math.abs(speed);
 
-    if (this.thighAngle <= -0.5) {
-      this.rotateThighL(speed);
-      this.rotateThighR(-speed);
-      this.rotateArmL(speed);
-      this.rotateArmR(-speed);
+    const thighHasLifted = this.animationProgress > Math.PI / 4
+    const thighHasLanded = this.animationProgress < 0;
 
-      this.thighAngle += speed;
-      this.halfWalk = true;
-    } else if (this.thighAngle >= 0.5) {
-      this.rotateThighL(-speed);
-      this.rotateThighR(speed);
-      this.rotateArmL(-speed);
-      this.rotateArmR(speed);
+    if (thighHasLifted) {
+      this.legLifted = true;
 
-      this.thighAngle -= speed;
-      this.halfWalk = false;
-    }
-    if (this.halfWalk) {
-      this.rotateThighL(speed);
-      this.rotateThighR(-speed);
-      this.rotateArmL(speed);
-      this.rotateArmR(-speed);
-      this.thighAngle += speed;
-    } else if (!this.halfWalk) {
-      this.rotateThighL(-speed);
-      this.rotateThighR(speed);
-      this.rotateArmL(-speed);
-      this.rotateArmR(speed);
-      this.thighAngle -= speed;
+    } else if (thighHasLanded) {
+      this.stepRCompleted = !this.stepRCompleted;
+      this.legLifted      = false;
     }
 
-    this.adjustWalk();
-  }
+    var angle = Math.abs(speed) * 0.5;
+    
+    if (this.legLifted) {
+      angle *= -1
+    }
+    
+    if (!this.stepRCompleted) { 
+      this.rotateThighR  (-angle       )
+      this.rotateLegR    ( angle       )
+      this.rotateThighL  ( angle * 0.75)
+      this.rotateLegL    ( angle * 0.75)
+      this.rotateArmR    ( angle, "x"  )
+      this.rotateForearmR(-angle       )
+      this.rotateArmL    (-angle, "x"  )
+      this.rotateForearmL(-angle       )
 
-  // Function to adjust the height of the robot while walking
-  adjustWalk() {
-    var walkDirectionTemp = this.walkDirection;
-
-    // Determine the position (on y-axis) of the legs relative to the ground
-    var leftY = this.legL.shape.position.y;
-    var rightY = this.legL.shape.position.y;
-    var coeffY = 5 * this.legLength; // coefficient such that legs stay on ground while walking
-
-    if (leftY - rightY < 0) {
-      var yMove = -leftY + coeffY * this.legRadius * Math.cos(this.thighAngle);
     } else {
-      var yMove = -rightY + coeffY * this.legRadius * Math.cos(this.thighAngle);
+      this.rotateThighL  (-angle       )
+      this.rotateLegL    ( angle       )
+      this.rotateThighR  ( angle * 0.75)
+      this.rotateLegR    ( angle * 0.75)
+      this.rotateArmR    (-angle, "x"  )
+      this.rotateForearmR(-angle       )
+      this.rotateArmL    ( angle, "x"  )
+      this.rotateForearmL(-angle       )
     }
 
-    this.walkDirection = new THREE.Vector3(0, yMove, 0);
-    this.moveTorso(1);
+    this.adjustHeight()
+    this.animationProgress += angle;
 
-    this.walkDirection = walkDirectionTemp;
   }
 }
 
@@ -706,6 +563,7 @@ var keyboard = new THREEx.KeyboardState();
 
 var selectedRobotComponent = 0;
 var components = [
+  "Full body",
   "Torso",
   "Head",
   "ArmR",
@@ -722,29 +580,18 @@ var numberComponents = components.length;
 function checkKeyboard() {
   // Next element
   if (keyboard.pressed("e")) {
-    selectedRobotComponent = selectedRobotComponent + 1;
-
-    if (selectedRobotComponent < 0) {
-      selectedRobotComponent = numberComponents - 1;
-    }
-
-    if (selectedRobotComponent >= numberComponents) {
-      selectedRobotComponent = 0;
-    }
+    selectedRobotComponent ++;
+    selectedRobotComponent %= numberComponents;
 
     window.alert(components[selectedRobotComponent] + " selected");
   }
 
   // Previous element
   if (keyboard.pressed("q")) {
-    selectedRobotComponent = selectedRobotComponent - 1;
+    selectedRobotComponent --;
 
     if (selectedRobotComponent < 0) {
-      selectedRobotComponent = numberComponents - 1;
-    }
-
-    if (selectedRobotComponent >= numberComponents) {
-      selectedRobotComponent = 0;
+      selectedRobotComponent += numberComponents;
     }
 
     window.alert(components[selectedRobotComponent] + " selected");
@@ -753,130 +600,68 @@ function checkKeyboard() {
   // UP
   if (keyboard.pressed("w")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso":
-        robot.walkAnimation(0.1);
-        break;
-      case "Head":
-        /* do nothing */ break;
-      case "ArmR":
-        robot.rotateArmR(-0.1, "x");
-        break;
-      case "ArmL":
-        robot.rotateArmL(-0.1, "x");
-        break;
-      case "ForearmR":
-        robot.rotateForearmR(-0.1);
-        break;
-      case "ForearmL":
-        robot.rotateForearmL(-0.1);
-        break;
-      case "ThighR":
-        robot.rotateThighR(-0.1);
-        break;
-      case "ThighL":
-        robot.rotateThighL(-0.1);
-        break;
-      case "LegR":
-        robot.rotateLegR(-0.1);
-        break;
-      case "LegL":
-        robot.rotateLegL(-0.1);
-        break;
+      case "Full body": robot.walk          (0.1      ); break;
+      case "Torso"    : robot.moveTorso     (0.1      ); break;
+      case "Head"     : /* do nothing */                 break;
+      case "ArmR"     : robot.rotateArmR    (-0.1, "x"); break;
+      case "ArmL"     : robot.rotateArmL    (-0.1, "x"); break;
+      case "ForearmR" : robot.rotateForearmR(-0.1     ); break;
+      case "ForearmL" : robot.rotateForearmL(-0.1     ); break;
+      case "ThighR"   : robot.rotateThighR  (-0.1     ); break;
+      case "ThighL"   : robot.rotateThighL  (-0.1     ); break;
+      case "LegR"     : robot.rotateLegR    (-0.1     ); break;
+      case "LegL"     : robot.rotateLegL    (-0.1     ); break;
     }
   }
 
   // DOWN
   if (keyboard.pressed("s")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso":
-        robot.walkAnimation(-0.1);
-        break;
-      case "Head":
-        /* do nothing */ break;
-      case "ArmR":
-        robot.rotateArmR(0.1, "x");
-        break;
-      case "ArmL":
-        robot.rotateArmL(0.1, "x");
-        break;
-      case "ForearmR":
-        robot.rotateForearmR(0.1);
-        break;
-      case "ForearmL":
-        robot.rotateForearmL(0.1);
-        break;
-      case "ThighR":
-        robot.rotateThighR(0.1);
-        break;
-      case "ThighL":
-        robot.rotateThighL(0.1);
-        break;
-      case "LegR":
-        robot.rotateLegR(0.1);
-        break;
-      case "LegL":
-        robot.rotateLegL(0.1);
-        break;
+      case "Full body": robot.walk          (-0.1    ); break;
+      case "Torso"    : robot.moveTorso     (-0.1    ); break;
+      case "Head"     : /* do nothing */                break;
+      case "ArmR"     : robot.rotateArmR    (0.1, "x"); break;
+      case "ArmL"     : robot.rotateArmL    (0.1, "x"); break;
+      case "ForearmR" : robot.rotateForearmR(0.1     ); break;
+      case "ForearmL" : robot.rotateForearmL(0.1     ); break;
+      case "ThighR"   : robot.rotateThighR  (0.1     ); break;
+      case "ThighL"   : robot.rotateThighL  (0.1     ); break;
+      case "LegR"     : robot.rotateLegR    (0.1     ); break;
+      case "LegL"     : robot.rotateLegL    (0.1     ); break;
     }
   }
 
   // LEFT
   if (keyboard.pressed("a")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso":
-        robot.rotateTorso(0.1);
-        break;
-      case "Head":
-        robot.rotateHead(0.1);
-        break;
-      case "ArmR":
-        robot.rotateArmR(-0.1, "y");
-        break;
-      case "ArmL":
-        robot.rotateArmL(-0.1, "y");
-        break;
-      case "ForearmR":
-        /* do nothing */ break;
-      case "ForearmL":
-        /* do nothing */ break;
-      case "ThighR":
-        /* do nothing */ break;
-      case "ThighL":
-        /* do nothing */ break;
-      case "LegR":
-        /* do nothing */ break;
-      case "LegL":
-        /* do nothing */ break;
+      case "Full body": robot.rotateTorso( 0.1     ); break;
+      case "Torso"    : robot.rotateTorso( 0.1     ); break;
+      case "Head"     : robot.rotateHead ( 0.1     ); break;
+      case "ArmR"     : robot.rotateArmR (-0.1, "y"); break;
+      case "ArmL"     : robot.rotateArmL (-0.1, "y"); break;
+      case "ForearmR" : /* do nothing */              break;
+      case "ForearmL" : /* do nothing */              break;
+      case "ThighR"   : /* do nothing */              break;
+      case "ThighL"   : /* do nothing */              break;
+      case "LegR"     : /* do nothing */              break;
+      case "LegL"     : /* do nothing */              break;
     }
   }
 
   // RIGHT
   if (keyboard.pressed("d")) {
     switch (components[selectedRobotComponent]) {
-      case "Torso":
-        robot.rotateTorso(-0.1);
-        break;
-      case "Head":
-        robot.rotateHead(-0.1);
-        break;
-      case "ArmR":
-        robot.rotateArmR(0.1, "y");
-        break;
-      case "ArmL":
-        robot.rotateArmL(0.1, "y");
-        break;
-      case "ForearmR":
-        /* do nothing */ break;
-      case "ForearmL":
-        /* do nothing */ break;
-      case "ThighR":
-        /* do nothing */ break;
-      case "ThighL":
-        /* do nothing */ break;
-      case "LegR":
-        /* do nothing */ break;
-      case "LegL":
-        /* do nothing */ break;
+      case "Full body": robot.rotateTorso(-0.1     ); break;
+      case "Torso"    : robot.rotateTorso(-0.1     ); break;
+      case "Head"     : robot.rotateHead (-0.1     ); break;
+      case "ArmR"     : robot.rotateArmR ( 0.1, "y"); break;
+      case "ArmL"     : robot.rotateArmL ( 0.1, "y"); break;
+      case "ForearmR" : /* do nothing */              break;
+      case "ForearmL" : /* do nothing */              break;
+      case "ThighR"   : /* do nothing */              break;
+      case "ThighL"   : /* do nothing */              break;
+      case "LegR"     : /* do nothing */              break;
+      case "LegL"     : /* do nothing */              break;
     }
   }
 }
