@@ -7,8 +7,6 @@ THREE.Object3D.prototype.setMatrix = function (a) {
 // SETUP RENDERER AND SCENE
 var start = Date.now();
 var scene = new THREE.Scene();
-var start = Date.now();
-var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer();
 
 renderer.setClearColor(0xffffff);
@@ -67,7 +65,12 @@ function inverseMat(m) {
 
 function idMat4() {
   var m = new THREE.Matrix4();
-  m.set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+  m.set(
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1,
+  );
 
   return m;
 }
@@ -173,7 +176,7 @@ function rotateVec3(v, angle, axis) {
       break;
 
     case "y":
-      var x = v.x * cosTheta + v.z * sinTheta;
+      var x =  v.x * cosTheta + v.z * sinTheta;
       var z = -v.x * sinTheta + v.z * cosTheta;
       v.set(x, v.y, z);
       break;
@@ -217,8 +220,8 @@ function rescaleMat(matrix, x, y, z) {
 
 class Limb {
   constructor(radius, length, initialPosition, material, parentLimb = null) {
-    this.radius = radius;
-    this.length = length;
+    this.radius          = radius;
+    this.length          = length;
     this.initialPosition = initialPosition;
     this.parentLimb      = parentLimb;
 
@@ -238,12 +241,7 @@ class Limb {
   scalingMatrix() { /* abstract */ } // default scaling applied to the shape
 
   initialMatrix() {
-    return translateMat(
-      idMat4(),
-      this.initialPosition.x,
-      this.initialPosition.y,
-      this.initialPosition.z
-    );
+    return translateMat(idMat4(), this.initialPosition.x, this.initialPosition.y, this.initialPosition.z);
   }
 
   transformationMatrix() {
@@ -255,7 +253,7 @@ class Limb {
   }
 
   addTransformation(transformation, order = "before") {
-    const t1 = order === "after" ? this.transformation : transformation;
+    const t1 = order === "after"  ? this.transformation : transformation;
     const t2 = order === "before" ? this.transformation : transformation;
 
     this.transformation = multMat(t1, t2);
@@ -271,9 +269,7 @@ class Limb {
   }
 
   update() {
-    this.shape.setMatrix(
-      multMat(this.transformationMatrix(), this.scalingMatrix())
-    );
+    this.shape.setMatrix(multMat(this.transformationMatrix(), this.scalingMatrix()));
   }
 }
 
@@ -412,36 +408,16 @@ class Robot {
     };
 
     switch (parentLimbName) {
-      case "torso":
-        this.torso.update();
-        break;
-      case "head":
-        this.head.update();
-        break;
-      case "armR":
-        this.armR.update();
-        break;
-      case "armL":
-        this.armL.update();
-        break;
-      case "forearmR":
-        this.forearmR.update();
-        break;
-      case "forearmL":
-        this.forearmL.update();
-        break;
-      case "thighR":
-        this.thighR.update();
-        break;
-      case "thighL":
-        this.thighL.update();
-        break;
-      case "legR":
-        this.legR.update();
-        break;
-      case "legL":
-        this.legL.update();
-        break;
+      case "torso"   : this.torso   .update(); break;
+      case "head"    : this.head    .update(); break;
+      case "armR"    : this.armR    .update(); break;
+      case "armL"    : this.armL    .update(); break;
+      case "forearmR": this.forearmR.update(); break;
+      case "forearmL": this.forearmL.update(); break;
+      case "thighR"  : this.thighR  .update(); break;
+      case "thighL"  : this.thighL  .update(); break;
+      case "legR"    : this.legR    .update(); break;
+      case "legL"    : this.legL    .update(); break;
     }
 
     childLimbs[parentLimbName].forEach((limb) => this.updateLimbs(limb)); // update child limbs recursively
@@ -451,31 +427,15 @@ class Robot {
     // initial positions
     var torsoPosition    = { x: 0                                  , y:  this.torsoLength / 2 + this.thighRadius + this.thighLength * 2 + this.legLength * 2, z: 0                                     };
     var headPosition     = { x: 0                                  , y:  this.torsoLength / 2 + this.headRadius                                             , z: 0                                     };
-    var armRPosition     = { x: this.torsoRadius + this.armRadius  , y:  this.torsoLength / 2 - this.armRadius                                              , z: this.armLength                        };
-    var thighRPosition   = { x: this.torsoRadius - this.thighRadius, y: -this.torsoLength / 2 - this.thighRadius                                            , z: this.thighLength                      };
-    var forearmRPosition = { x: 0                                  , y: 0                                                                                   , z: this.armLength   + this.forearmLength };
-    var legRPosition     = { x: 0                                  , y: 0                                                                                   , z: this.thighLength + this.legLength     };
+    var armLPosition     = { x: this.torsoRadius + this.armRadius  , y:  this.torsoLength / 2 - this.armRadius                                              , z: this.armLength                        };
+    var thighLPosition   = { x: this.torsoRadius - this.thighRadius, y: -this.torsoLength / 2 - this.thighRadius                                            , z: this.thighLength                      };
+    var forearmLPosition = { x: 0                                  , y: 0                                                                                   , z: this.armLength   + this.forearmLength };
+    var legLPosition     = { x: 0                                  , y: 0                                                                                   , z: this.thighLength + this.legLength     };
 
-    var armLPosition = {
-      x: -armRPosition.x,
-      y: armRPosition.y,
-      z: armRPosition.z,
-    };
-    var thighLPosition = {
-      x: -thighRPosition.x,
-      y: thighRPosition.y,
-      z: thighRPosition.z,
-    };
-    var forearmLPosition = {
-      x: -forearmRPosition.x,
-      y: forearmRPosition.y,
-      z: forearmRPosition.z,
-    };
-    var legLPosition = {
-      x: -legRPosition.x,
-      y: legRPosition.y,
-      z: legRPosition.z,
-    };
+    var armRPosition     = { x: -armLPosition    .x, y: armLPosition    .y, z: armLPosition    .z };
+    var thighRPosition   = { x: -thighLPosition  .x, y: thighLPosition  .y, z: thighLPosition  .z };
+    var forearmRPosition = { x: -forearmLPosition.x, y: forearmLPosition.y, z: forearmLPosition.z };
+    var legRPosition     = { x: -legLPosition    .x, y: legLPosition    .y, z: legLPosition    .z };
 
     // Limbs
     this.torso    = new BoxLimb   (this.torsoRadius  , this.torsoLength  , torsoPosition   , this.material,            );
@@ -499,12 +459,12 @@ class Robot {
   }
 
   adjustHeight() {
-    
-    const lowestY = Math.min(this.legR.shape.position.y, this.legL.shape.position.y);
-    
-    const translation = translateMat(idMat4(), 0, this.legLength - lowestY, 0)
+    const dR = -this.legR.shape.position.y + Math.sin(this.legR.shape.rotation.x) * this.legR.length
+    const dL = -this.legL.shape.position.y + Math.sin(this.legL.shape.rotation.x) * this.legL.length
 
+    const translation = translateMat(idMat4(), 0, Math.max(dR, dL), 0)
     this.torso.addTransformation(translation)
+    this.updateLimbs()
   }
 
   // Walking animation
@@ -566,14 +526,14 @@ var components = [
   "Full body",
   "Torso",
   "Head",
-  "ArmR",
-  "ArmL",
-  "ForearmR",
-  "ForearmL",
-  "ThighR",
-  "ThighL",
-  "LegR",
-  "LegL",
+  "Right Arm",
+  "Left Arm",
+  "Right Forearm",
+  "Left Forearm",
+  "Right Thigh",
+  "Left Thigh",
+  "Right Leg",
+  "Left Leg",
 ];
 var numberComponents = components.length;
 
@@ -600,68 +560,68 @@ function checkKeyboard() {
   // UP
   if (keyboard.pressed("w")) {
     switch (components[selectedRobotComponent]) {
-      case "Full body": robot.walk          (0.1      ); break;
-      case "Torso"    : robot.moveTorso     (0.1      ); break;
-      case "Head"     : /* do nothing */                 break;
-      case "ArmR"     : robot.rotateArmR    (-0.1, "x"); break;
-      case "ArmL"     : robot.rotateArmL    (-0.1, "x"); break;
-      case "ForearmR" : robot.rotateForearmR(-0.1     ); break;
-      case "ForearmL" : robot.rotateForearmL(-0.1     ); break;
-      case "ThighR"   : robot.rotateThighR  (-0.1     ); break;
-      case "ThighL"   : robot.rotateThighL  (-0.1     ); break;
-      case "LegR"     : robot.rotateLegR    (-0.1     ); break;
-      case "LegL"     : robot.rotateLegL    (-0.1     ); break;
+      case "Full body"    : robot.walk          (0.1      ); break;
+      case "Torso"        : robot.moveTorso     (0.1      ); break;
+      case "Head"         : /* do nothing */                 break;
+      case "Right Arm"    : robot.rotateArmR    (-0.1, "x"); break;
+      case "Left Arm"     : robot.rotateArmL    (-0.1, "x"); break;
+      case "Right Forearm": robot.rotateForearmR(-0.1     ); break;
+      case "Left Forearm" : robot.rotateForearmL(-0.1     ); break;
+      case "Right Thigh"  : robot.rotateThighR  (-0.1     ); break;
+      case "Left Thigh"   : robot.rotateThighL  (-0.1     ); break;
+      case "Right Leg"    : robot.rotateLegR    (-0.1     ); break;
+      case "Left Leg"     : robot.rotateLegL    (-0.1     ); break;
     }
   }
 
   // DOWN
   if (keyboard.pressed("s")) {
     switch (components[selectedRobotComponent]) {
-      case "Full body": robot.walk          (-0.1    ); break;
-      case "Torso"    : robot.moveTorso     (-0.1    ); break;
-      case "Head"     : /* do nothing */                break;
-      case "ArmR"     : robot.rotateArmR    (0.1, "x"); break;
-      case "ArmL"     : robot.rotateArmL    (0.1, "x"); break;
-      case "ForearmR" : robot.rotateForearmR(0.1     ); break;
-      case "ForearmL" : robot.rotateForearmL(0.1     ); break;
-      case "ThighR"   : robot.rotateThighR  (0.1     ); break;
-      case "ThighL"   : robot.rotateThighL  (0.1     ); break;
-      case "LegR"     : robot.rotateLegR    (0.1     ); break;
-      case "LegL"     : robot.rotateLegL    (0.1     ); break;
+      case "Full body"    : robot.walk          (-0.1    ); break;
+      case "Torso"        : robot.moveTorso     (-0.1    ); break;
+      case "Head"         : /* do nothing */                break;
+      case "Right Arm"    : robot.rotateArmR    (0.1, "x"); break;
+      case "Left Arm"     : robot.rotateArmL    (0.1, "x"); break;
+      case "Right Forearm": robot.rotateForearmR(0.1     ); break;
+      case "Left Forearm" : robot.rotateForearmL(0.1     ); break;
+      case "Right Thigh"  : robot.rotateThighR  (0.1     ); break;
+      case "Left Thigh"   : robot.rotateThighL  (0.1     ); break;
+      case "Right Leg"    : robot.rotateLegR    (0.1     ); break;
+      case "Left Leg"     : robot.rotateLegL    (0.1     ); break;
     }
   }
 
   // LEFT
   if (keyboard.pressed("a")) {
     switch (components[selectedRobotComponent]) {
-      case "Full body": robot.rotateTorso( 0.1     ); break;
-      case "Torso"    : robot.rotateTorso( 0.1     ); break;
-      case "Head"     : robot.rotateHead ( 0.1     ); break;
-      case "ArmR"     : robot.rotateArmR (-0.1, "y"); break;
-      case "ArmL"     : robot.rotateArmL (-0.1, "y"); break;
-      case "ForearmR" : /* do nothing */              break;
-      case "ForearmL" : /* do nothing */              break;
-      case "ThighR"   : /* do nothing */              break;
-      case "ThighL"   : /* do nothing */              break;
-      case "LegR"     : /* do nothing */              break;
-      case "LegL"     : /* do nothing */              break;
+      case "Full body"    : robot.rotateTorso( 0.1     ); break;
+      case "Torso"        : robot.rotateTorso( 0.1     ); break;
+      case "Head"         : robot.rotateHead ( 0.1     ); break;
+      case "Right Arm"    : robot.rotateArmR (-0.1, "y"); break;
+      case "Left Arm"     : robot.rotateArmL (-0.1, "y"); break;
+      case "Right Forearm": /* do nothing */              break;
+      case "Left Forearm" : /* do nothing */              break;
+      case "Right Thigh"  : /* do nothing */              break;
+      case "Left Thigh"   : /* do nothing */              break;
+      case "Right Leg"    : /* do nothing */              break;
+      case "Left Leg"     : /* do nothing */              break;
     }
   }
 
   // RIGHT
   if (keyboard.pressed("d")) {
     switch (components[selectedRobotComponent]) {
-      case "Full body": robot.rotateTorso(-0.1     ); break;
-      case "Torso"    : robot.rotateTorso(-0.1     ); break;
-      case "Head"     : robot.rotateHead (-0.1     ); break;
-      case "ArmR"     : robot.rotateArmR ( 0.1, "y"); break;
-      case "ArmL"     : robot.rotateArmL ( 0.1, "y"); break;
-      case "ForearmR" : /* do nothing */              break;
-      case "ForearmL" : /* do nothing */              break;
-      case "ThighR"   : /* do nothing */              break;
-      case "ThighL"   : /* do nothing */              break;
-      case "LegR"     : /* do nothing */              break;
-      case "LegL"     : /* do nothing */              break;
+      case "Full body"    : robot.rotateTorso(-0.1     ); break;
+      case "Torso"        : robot.rotateTorso(-0.1     ); break;
+      case "Head"         : robot.rotateHead (-0.1     ); break;
+      case "Right Arm"    : robot.rotateArmR ( 0.1, "y"); break;
+      case "Left Arm"     : robot.rotateArmL ( 0.1, "y"); break;
+      case "Right Forearm": /* do nothing */              break;
+      case "Left Forearm" : /* do nothing */              break;
+      case "Right Thigh"  : /* do nothing */              break;
+      case "Left Thigh"   : /* do nothing */              break;
+      case "Right Leg"    : /* do nothing */              break;
+      case "Left Leg"     : /* do nothing */              break;
     }
   }
 }
