@@ -1,3 +1,12 @@
+#include <cmath>
+#include <cfloat>
+#include <fstream>
+#include <sstream>
+#include <map>
+#include <vector>
+#include <iostream>
+
+
 #include "object.h"
 
 // Fonction retournant soit la valeur v0 ou v1 selon le signe.
@@ -15,7 +24,45 @@ bool Sphere::local_intersect(Ray ray,
 							 double t_min, double t_max, 
 							 Intersection *hit) 
 {
-	return false;
+	double a = dot(ray.direction, ray.direction);	
+	double b = 2 * dot(ray.direction, ray.origin);
+	double c = length2(ray.origin) -  pow(radius, 2);
+	double discriminant = b * b - 4 * a * c;
+
+	if (b < 0) {
+		return false;
+	}
+
+	if (discriminant > 0) { // 2 intersection points
+		// Calculate the two possible intersection depths
+		double t_0 = (-b - sqrt(discriminant)) / (2 * a);
+		double t_1 = (-b + sqrt(discriminant)) / (2 * a);
+		if (t_0 > t_min && t_0 < t_max) {
+			// If t_0 is within the valid range, set the intersection information
+			hit->depth = t_0;
+			hit->position = ray.origin + t_0 * ray.direction;
+			hit->normal = normalize(hit->position);
+			return true;
+		} else if (t_1 > t_min && t_1 < t_max) {
+			// If t_1 is within the valid range, set the intersection information
+			hit->depth = t_1;
+			hit->position = ray.origin + t_1 * ray.direction;
+			hit->normal = normalize(hit->position);
+			return true;
+		}
+	} 
+	else if (discriminant == 0) { // 1 intersection point
+		// Calculate the single intersection depth
+		double t = -b / (2 * a);
+		if (t > t_min && t < t_max) {
+			// If t is within the valid range, set the intersection information
+			hit->depth = t;
+			hit->position = ray.origin + t * ray.direction;
+			hit->normal = normalize(hit->position);
+			return true;
+		}
+	}
+	return false; // No intersection found
 }
 
 // @@@@@@ VOTRE CODE ICI
@@ -34,7 +81,7 @@ AABB Sphere::compute_aabb() {
 bool Quad::local_intersect(Ray ray, 
 							double t_min, double t_max, 
 							Intersection *hit)
-{
+{	
 	return false;
 }
 
@@ -77,7 +124,21 @@ bool Mesh::local_intersect(Ray ray,
 						   double t_min, double t_max, 
 						   Intersection* hit)
 {
-	return false;
+	double closest_hit_distance = std::numeric_limits<double>::max();
+	bool hit_found = false;
+
+	// Parcourir tous les triangles
+	for (auto& tri : triangles) {
+		Intersection temp_hit;
+		if (intersect_triangle(ray, t_min, closest_hit_distance, tri, &temp_hit)) {
+			hit_found = true;
+			closest_hit_distance = temp_hit.depth;
+			*hit = temp_hit;
+		}
+	}
+
+	return hit_found;
+
 }
 
 // @@@@@@ VOTRE CODE ICI
@@ -111,12 +172,49 @@ bool Mesh::intersect_triangle(Ray  ray,
 	// NOTE : hit.depth est la profondeur de l'intersection actuellement la plus proche,
 	// donc n'acceptez pas les intersections qui occurent plus loin que cette valeur.
 
-	return false;
+	
+	// Intersection test between the ray and the triangle (p0, p1, p2)
+	double3 edge1 = p1 - p0;
+	double3 edge2 = p2 - p0;
+	double3 h = cross(ray.direction, edge2);
+	double determinant = dot(edge1, h);
+
+	if (abs(determinant) < EPSILON) {
+		return false; // Ray is parallel to the triangle
+	}
+
+	double invDeterminant = 1.0 / determinant;
+	double3 s = ray.origin - p0;
+	double u = invDeterminant * dot(s, h);
+
+	if (u < 0.0 || u > 1.0) {
+		return false; // Intersection is outside the triangle on the u-axis
+	}
+
+	double3 q = cross(s, edge1);
+	double v = invDeterminant * dot(ray.direction, q);
+
+	if (v < 0.0 || u + v > 1.0) {
+		return false; // Intersection is outside the triangle on the v-axis or outside the triangle bounds
+	}
+
+	double t = invDeterminant * dot(edge2, q);
+
+	if (t < t_min || t > t_max) {
+		return false; // Intersection is outside the valid t range
+	}
+
+	// Fill the hit structure with intersection information
+	hit->depth = t;
+	hit->position = ray.origin + t * ray.direction;
+	hit->normal = normalize(cross(edge1, edge2));
+
+	return true; // Intersection found
 }
 
 // @@@@@@ VOTRE CODE ICI
 // Occupez-vous de compléter cette fonction afin de calculer le AABB pour le Mesh.
 // Il faut que le AABB englobe minimalement notre objet à moins que l'énoncé prononce le contraire.
 AABB Mesh::compute_aabb() {
-	return Object::compute_aabb();
+	return construct_aabb(positions); // not sure
 }
