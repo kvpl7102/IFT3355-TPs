@@ -80,11 +80,6 @@ void Raytracer::render(const Scene& scene, Frame* output)
 			avg_z_depth = avg_z_depth / scene.samples_per_pixel;
 			avg_ray_color = avg_ray_color / scene.samples_per_pixel;
 
-
-
-
-
-
 			// Test de profondeur
 			if(avg_z_depth >= scene.camera.z_near && avg_z_depth <= scene.camera.z_far && 
 				avg_z_depth < z_buffer[x + y*scene.resolution[0]]) {
@@ -125,7 +120,7 @@ void Raytracer::trace(const Scene& scene,
 		// Déterminer la couleur associée à la réflection d'un rayon de manière récursive.
 				
 		// Reflection
-		if (!(material.k_reflection < EPSILON) && (ray_depth < MAX_DEPTH)) { // if 
+		if (!(abs(material.k_reflection) < EPSILON) && (ray_depth < MAX_DEPTH)) { // if 
 		    for (auto lightIter = scene.lights.begin(); lightIter != scene.lights.end(); lightIter++) {
 				double3 reflected_color{0, 0 ,0};
 				double3 v_i = ray.origin - ray.direction; // direction inverse du rayon
@@ -141,7 +136,7 @@ void Raytracer::trace(const Scene& scene,
 		}
 		// @@@@@@ VOTRE CODE ICI
 		// Déterminer la couleur associée à la réfraction d'un rayon de manière récursive.
-		if (!(material.k_refraction < EPSILON) && (ray_depth < MAX_DEPTH)) {
+		if (!(abs(material.k_refraction) < EPSILON) && (ray_depth < MAX_DEPTH)) {
 			double3 refracted_color{0, 0, 0};
 			double3 incident_direction = ray.direction;
 			double3 normal = hit.normal;
