@@ -49,8 +49,6 @@ bool BVH::intersect(Ray ray, double t_min, double t_max, Intersection* hit) {
             if(hit_right) nodes_to_visit.push(node->right);
         }
     }
-
-    // Return whether a hit was found.
     return hit_found;
 }
 
@@ -72,7 +70,6 @@ bool Naive::intersect(Ray ray, double t_min, double t_max, Intersection* hit) {
             *hit = temp_hit;
         }
     }
-
     return hit_found;
 }
 
