@@ -1,5 +1,5 @@
 # IFT3355-TPs
-Joël Villeneuve  - 20218950
+Joël Villeneuve  - 20218950    
 Le Kinh Vi Phung - 20178538
 
 # Notes pour correcteur TP1
