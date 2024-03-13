@@ -1,2 +1,0 @@
-C:\PROGRA~1\MINGW-~1\WINLIB~1.0-R\mingw64\bin\ar.exe qc libpcg32.a 
-C:\PROGRA~1\MINGW-~1\WINLIB~1.0-R\mingw64\bin\ranlib.exe libpcg32.a
