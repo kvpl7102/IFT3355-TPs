@@ -120,10 +120,10 @@ void Raytracer::trace(const Scene& scene,
 		// Déterminer la couleur associée à la réflection d'un rayon de manière récursive.
 				
 		// Reflection
-		if (!(abs(material.k_reflection) < EPSILON) && (ray_depth < MAX_DEPTH)) { // if 
+		if (!(abs(material.k_reflection) < EPSILON) && (ray_depth < MAX_DEPTH)) { // if reflected
 		    for (auto lightIter = scene.lights.begin(); lightIter != scene.lights.end(); lightIter++) {
 				double3 reflected_color{0, 0 ,0};
-				double3 v_i = ray.origin - ray.direction; // direction inverse du rayon
+				double3 v_i = ray.origin - ray.direction; // inverse direction of the ray
 				double3 reflected_ray = 2 * linalg::dot(v_i, hit.normal) * hit.normal - v_i;
 						
 				Ray reflected_lightRay = Ray(hit.position + EPSILON * hit.normal, reflected_ray);
@@ -136,7 +136,7 @@ void Raytracer::trace(const Scene& scene,
 		}
 		// @@@@@@ VOTRE CODE ICI
 		// Déterminer la couleur associée à la réfraction d'un rayon de manière récursive.
-		if (!(abs(material.k_refraction) < EPSILON) && (ray_depth < MAX_DEPTH)) {
+		if (!(abs(material.k_refraction) < EPSILON) && (ray_depth < MAX_DEPTH)) { // if refracted
 			double3 refracted_color{0, 0, 0};
 			double3 incident_direction = ray.direction;
 			double3 normal = hit.normal;
@@ -176,6 +176,61 @@ void Raytracer::trace(const Scene& scene,
 
 double3 Raytracer::shade(const Scene& scene, Intersection hit)
 {
-	// Material& material = ResourceManager::Instance()->materials[hit.key_material]; lorsque vous serez rendu à la partie texture.
-	return double3{0,0,0};
+	Material& material = ResourceManager::Instance()->materials[hit.key_material];
+	double3 color = material.color_albedo;
+
+	// Ambient contribution
+	double3 ambient = scene.ambient_light * material.k_ambient;
+
+	// Diffuse and specular contributions
+	double3 diffuse{0, 0, 0};
+	double3 specular{0, 0, 0};
+
+	for (const auto& light : scene.lights) {
+		// Calculate the direction from the intersection point to the light
+		double3 light_direction = linalg::normalize(light.position - hit.position);
+
+		// Calculate the halfway vector for the Blinn specular model
+		double3 view_direction = linalg::normalize(scene.camera.position - hit.position);
+		double3 halfway_direction = linalg::normalize(light_direction + view_direction);
+
+		// Calculate the diffuse component
+		double diffuse_intensity = std::max(0.0, linalg::dot(hit.normal, light_direction));
+		diffuse += light.emission * material.k_diffuse * diffuse_intensity;
+
+		// Calculate the specular component using the Blinn specular model
+		double specular_intensity = std::pow(std::max(0.0, linalg::dot(hit.normal, halfway_direction)), material.shininess);
+		specular += light.emission * material.k_specular * specular_intensity;
+
+		// Calculate the occlusion factor for penumbra
+		double occlusion_factor = 0.0;
+		int num_rays = 16; // Number of rays to sample
+
+		for (int i = 0; i < num_rays; i++) {
+			// Sample a random direction inside the cone between the intersection point and the light
+			double2 random_direction_2d = random_in_unit_disk();
+			double3 random_direction{ random_direction_2d.x, random_direction_2d.y, 0.0 };
+			random_direction *= light.radius;
+			double3 sampled_direction = linalg::normalize(light_direction + random_direction);
+
+			// Check if the sampled direction is occluded
+			Ray shadow_ray(hit.position + EPSILON * hit.normal, sampled_direction);
+			Intersection shadow_hit;
+
+			if (scene.container->intersect(shadow_ray, EPSILON, scene.camera.z_far, &shadow_hit)) {
+				occlusion_factor += 1.0; // Increment occlusion factor if the ray is occluded
+			}
+		}
+
+		occlusion_factor /= num_rays; // Average the occlusion factor based on the number of rays
+
+		// Apply the occlusion factor to the diffuse and specular contributions
+		diffuse *= (1.0 - occlusion_factor);
+		specular *= (1.0 - occlusion_factor);
+	}
+
+	// Combine the ambient, diffuse, and specular contributions
+	color = color * ambient + color * diffuse + specular;
+
+	return color;
 }
