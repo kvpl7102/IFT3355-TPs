@@ -262,7 +262,6 @@ bool Parser::parse() {
     std::string container;
 
     while (true) {
-
         Token token = lexer.peek();
         switch (token.type) {
             case END_OF_FILE:

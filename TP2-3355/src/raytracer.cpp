@@ -20,80 +20,106 @@ void Raytracer::render(const Scene& scene, Frame* output)
 {       
     // Crée le z_buffer.
     double *z_buffer = new double[scene.resolution[0] * scene.resolution[1]];
-    for(int i = 0; i < scene.resolution[0] * scene.resolution[1]; i++) {
+
+    for (int i = 0; i < scene.resolution[0] * scene.resolution[1]; i ++) {
         z_buffer[i] = scene.camera.z_far; //Anciennement DBL_MAX. À remplacer avec la valeur de scene.camera.z_far
     }
 
-	// @@@@@@ VOTRE CODE ICI
-	// Calculez les paramètres de la caméra pour les rayons.
-		double3 forward = normalize(scene.camera.center - scene.camera.position); // z-direction of the camera 
-	    double3 right = cross(forward, scene.camera.up); // x-direction of the camera 
-		double3 up = cross(right, forward); // y-direction of the camera 
+    // Camera
+    double3 cam_direction_forward = normalize(scene.camera.center - scene.camera.position);
+    double3 cam_direction_up      = normalize(scene.camera.up);
+    double3 cam_direction_right   = normalize(cross(cam_direction_forward, cam_direction_up));
+//    printf("cam_direction_forward = [%f, %f, %f],\n", cam_direction_forward.x, cam_direction_forward.y, cam_direction_forward.z);
+//    printf("cam_direction_up      = [%f, %f, %f],\n", cam_direction_up     .x, cam_direction_up     .y, cam_direction_up     .z);
+//    printf("cam_direction_right   = [%f, %f, %f],\n", cam_direction_right  .x, cam_direction_right  .y, cam_direction_right  .z);
+    double alpha = scene.camera.z_near / cam_direction_forward.y;
 
-		double aspect_ratio = static_cast<double>(scene.resolution[0]) / scene.resolution[1];
-		
-		double alpha = scene.camera.z_near / forward[2];
-		
-		double3 centerPOV = scene.camera.position - alpha * forward; // Position of the center of the projection plane
-		double heightPOV = 2 * alpha * tan(0.5 * deg2rad(scene.camera.fovy)); // Height of the projection plane
-		double widthPOV = heightPOV * scene.camera.aspect; // Width of the projection plane
-		
-		double pixelWidth = widthPOV / scene.resolution[0];  // Width of a pixel according to the camera (screen width / resolution in x [number of pixels in width])
-		double pixelHeight = heightPOV / scene.resolution[1]; // Height of a pixel according to the camera
+    // Projection plane
+    double3 pjp_position = scene.camera.center;
+    double  pjp_hight    = 2*alpha * tan(deg2rad(scene.camera.fovy) );
+    double  pjp_width    = pjp_hight * scene.camera.aspect;
 
-		double3 bottomLeftCornerPOV = centerPOV - 0.5 * heightPOV * up - 0.5 * widthPOV * right; // Bottom-left corner of the projection plane
-		bottomLeftCornerPOV += 0.5 * pixelWidth * right + 0.5 * pixelHeight * up; // Offset to be at the center of the pixel
-
+    // Pixel dimensions according to camera
+    double  pxl_width           = pjp_width / scene.resolution[0];
+    double  pxl_hight           = pjp_hight / scene.resolution[1];
+    double3 pxl_top_left_corner = pjp_position - pjp_width/2 * cam_direction_right + pjp_hight/2 * cam_direction_up;
+                                               + pxl_width/2 * cam_direction_right - pxl_hight/2 * cam_direction_up;
 
     // Itère sur tous les pixels de l'image.
-    for(int y = 0; y < scene.resolution[1]; y++) {
-		if (y % 40){
+    for (int y = 0; y < scene.resolution[1]; y ++) {
+		if (y % 40) {
 			std::cout << "\rScanlines completed: " << y << "/" << scene.resolution[1] << '\r';
 		}
 
-        for(int x = 0; x < scene.resolution[0]; x++) {
+        for (int x = 0; x < scene.resolution[0]; x++) {
 
-			int avg_z_depth = 0;
-			double3 avg_ray_color{0,0,0};
-			
-			for(int iray = 0; iray < scene.samples_per_pixel; iray++) {
-				// Génère le rayon approprié pour ce pixel.
-				Ray ray;
-				// Initialise la profondeur de récursivité du rayon.
-				int ray_depth = 0;
-				// Initialize la couleur du rayon
-				double3 ray_color{0,0,0};
+			double3 avg_ray_color { 0, 0, 0 };
+            double  avg_z_depth  = 0;
+            double3 pxl_position = pxl_top_left_corner + x * pxl_width * cam_direction_right + y * pxl_hight * cam_direction_up;
 
-				// @@@@@@ VOTRE CODE ICI
-				// Mettez en place le rayon primaire en utilisant les paramètres de la caméra.
-				// Lancez le rayon de manière uniformément aléatoire à l'intérieur du pixel dans la zone délimité par jitter_radius. 
-				// Faites la moyenne des différentes couleurs obtenues suite à la récursion.
-				
-				double3 pixel_center = bottomLeftCornerPOV + x * pixelWidth * right - y * pixelHeight * up;
-				ray = Ray(scene.camera.position, normalize(pixel_center - scene.camera.position));
-				double depth = scene.camera.z_far;
+            for (int i = 0; i < scene.samples_per_pixel; i ++) {
 
-				trace(scene, ray, ray_depth, &ray_color, &depth);
-				
+                double3 random_point_in_pxl = {
+                    pxl_position.x + rand_double() * scene.jitter_radius,
+                    pxl_position.y + rand_double() * scene.jitter_radius,
+                    pxl_position.z
+                };
+                double3 direction_to_pxl = normalize(double3 {
+                    random_point_in_pxl.x - scene.camera.position.x,
+                    random_point_in_pxl.y - scene.camera.position.y,
+                    random_point_in_pxl.z - scene.camera.position.z,
+                });
+//                printf("[x, y, z] = [%f, %f, %f] + t[%f, %f, %f],\n", random_point_in_pxl.x, random_point_in_pxl.y, random_point_in_pxl.z, cam_direction_forward.x, cam_direction_forward.y, cam_direction_forward.z);
+
+				Ray     ray         = Ray(random_point_in_pxl, direction_to_pxl);
+				int     ray_depth   = 0;
+                double  out_z_depth = scene.camera.z_far;
+                double3 ray_color { 0, 0, 0 };
+
+                trace(scene, ray, ray_depth, &ray_color, &out_z_depth);
+
+                avg_ray_color += ray_color;
+                avg_z_depth   += out_z_depth;
 			}
 
-			avg_z_depth = avg_z_depth / scene.samples_per_pixel;
+			avg_z_depth   = avg_z_depth   / scene.samples_per_pixel;
 			avg_ray_color = avg_ray_color / scene.samples_per_pixel;
+//            printf("RGB   at (%d, %d): %f %f %f\n", x, y, avg_ray_color.x, avg_ray_color.y, avg_ray_color.z);
+//            printf("depth at (%d, %d): %f\n", x, y, avg_z_depth);
 
 			// Test de profondeur
-			if(avg_z_depth >= scene.camera.z_near && avg_z_depth <= scene.camera.z_far && 
-				avg_z_depth < z_buffer[x + y*scene.resolution[0]]) {
+			if (scene.camera.z_near <= avg_z_depth && avg_z_depth <= scene.camera.z_far && avg_z_depth < z_buffer[x + y*scene.resolution[0]]) {
 				z_buffer[x + y*scene.resolution[0]] = avg_z_depth;
 
 				// Met à jour la couleur de l'image (et sa profondeur)
 				output->set_color_pixel(x, y, avg_ray_color);
-				output->set_depth_pixel(x, y, (avg_z_depth - scene.camera.z_near) / 
-										(scene.camera.z_far-scene.camera.z_near));
+				output->set_depth_pixel(x, y, (avg_z_depth - scene.camera.z_near) / (scene.camera.z_far-scene.camera.z_near));
 			}
         }
     }
 
     delete[] z_buffer;
+}
+
+// Returns direction of ray after reflection.
+// The formula used is a simplification of the orthogonal projection formula.
+double3 reflect(double3 incident_vector, Intersection hit)
+{
+    double3 normal = normalize(hit.normal); // make sure that normal used is a unit vector
+
+    return 2 * linalg::dot(-incident_vector, normal) * normal + incident_vector;
+}
+
+// Returns direction of ray after refraction.
+// The formula used is a derivation of Snell's law: https://www.starkeffects.com/snells-law-vector.shtml
+double3 refract(double3 incident_vector, Intersection hit, double n1, double n2)
+{
+    double3 normal              = hit.normal;
+    double3 normal_x_incident   = cross(normal, incident_vector);
+
+    return n1/n2 * cross(normal, cross(-normal, incident_vector))
+         - normal * sqrt(1 - pow(n1/n2, 2) * normal_x_incident * normal_x_incident);
+
 }
 
 // @@@@@@ VOTRE CODE ICI
@@ -105,60 +131,48 @@ void Raytracer::render(const Scene& scene, Frame* output)
 //			  Ajouter réflexion selon material.reflection +
 //			  Ajouter réfraction selon material.refraction 
 //            pour la couleur de sortie.
-//          - Mettre à jour la nouvelle profondeure.
-void Raytracer::trace(const Scene& scene,
-					  Ray ray, int ray_depth,
-					  double3* out_color, double* out_z_depth)
-{
+//          - Mettre à jour la nouvelle profondeur.
+void Raytracer::trace(
+    const Scene&   scene,
+          Ray      ray,
+          int      ray_depth,
+          double3* out_color,
+          double*  out_z_depth
+) {
 	Intersection hit;
+
 	// Fait appel à l'un des containers spécifiées.
-	if(scene.container->intersect(ray,EPSILON,*out_z_depth,&hit)) {		
-		Material& material = ResourceManager::Instance()->materials[hit.key_material];
-		
+	if (scene.container->intersect(ray, EPSILON, *out_z_depth, &hit)) {
+        Material& material = ResourceManager::Instance()->materials[hit.key_material];
 
-		// @@@@@@ VOTRE CODE ICI
-		// Déterminer la couleur associée à la réflection d'un rayon de manière récursive.
-				
-		// Reflection
-		if (!(abs(material.k_reflection) < EPSILON) && (ray_depth < MAX_DEPTH)) { // if 
-		    for (auto lightIter = scene.lights.begin(); lightIter != scene.lights.end(); lightIter++) {
-				double3 reflected_color{0, 0 ,0};
-				double3 v_i = ray.origin - ray.direction; // direction inverse du rayon
-				double3 reflected_ray = 2 * linalg::dot(v_i, hit.normal) * hit.normal - v_i;
-						
-				Ray reflected_lightRay = Ray(hit.position + EPSILON * hit.normal, reflected_ray);
-				double reflected_z_depth = scene.camera.z_far;
+        if (ray_depth < MAX_DEPTH) {
+            if (abs(material.k_reflection) >= EPSILON) { // Find reflection color recursively
+                double3 reflected_color     = { 255, 255, 255 };
+                double3 reflected_direction = reflect(ray.direction, hit);
+                Ray     reflected_ray       = Ray(hit.position, reflected_direction);
 
-				if (ray_depth < scene.max_ray_depth) {
-					trace(scene, reflected_lightRay, ray_depth++, &reflected_color, &reflected_z_depth);
-				}
-			}
-		}
-		// @@@@@@ VOTRE CODE ICI
-		// Déterminer la couleur associée à la réfraction d'un rayon de manière récursive.
-		if (!(abs(material.k_refraction) < EPSILON) && (ray_depth < MAX_DEPTH)) {
-			double3 refracted_color{0, 0, 0};
-			double3 incident_direction = ray.direction;
-			double3 normal = hit.normal;
-			double3 transmitted_direction = incident_direction;
-			double3 reflected_direction = incident_direction - 2 * linalg::dot(incident_direction, normal) * normal;
-			double3 refracted_ray = transmitted_direction - reflected_direction;
-			
-			Ray refracted_lightRay = Ray(hit.position + EPSILON * hit.normal, refracted_ray);
-			double refracted_z_depth = scene.camera.z_far;
+                if (ray_depth < scene.max_ray_depth) {
+                    ray_depth ++;
+                    trace(scene, reflected_ray, ray_depth, &reflected_color, out_z_depth);
+                }
+            }
 
-			if (ray_depth < scene.max_ray_depth) {
-				trace(scene, refracted_lightRay, ray_depth++, &refracted_color, &refracted_z_depth);
-			}
-		} 
-		// Assumez que l'extérieur/l'air a un indice de réfraction de 1.
-		//
-		// Toutes les géométries sont des surfaces et non pas de volumes.
-		*out_color = shade(scene, hit);
+            if (abs(material.k_refraction) >= EPSILON) { // Find refraction color recursively
+                double3 refracted_color     = { 255, 255, 255 };
+                double3 refracted_direction = refract(ray.direction, hit, 1, material.refractive_index); // n1 is 1 for air
+                Ray     refracted_ray       = Ray(hit.position, refracted_direction);
+
+                if (ray_depth < scene.max_ray_depth) {
+                    ray_depth ++;
+                    trace(scene, refracted_ray, ray_depth, &refracted_color, out_z_depth);
+                }
+            }
+        }
+
+		*out_color   = shade(scene, hit);
 		*out_z_depth = hit.depth;
-	} 
+	}
 }
-
 // @@@@@@ VOTRE CODE ICI
 // Veuillez remplir les objectifs suivants:
 // 		* Calculer la contribution des lumières dans la scène.
@@ -177,5 +191,5 @@ void Raytracer::trace(const Scene& scene,
 double3 Raytracer::shade(const Scene& scene, Intersection hit)
 {
 	// Material& material = ResourceManager::Instance()->materials[hit.key_material]; lorsque vous serez rendu à la partie texture.
-	return double3{0,0,0};
+	return double3{255,255,255};
 }

@@ -59,15 +59,18 @@ bool BVH::intersect(Ray ray, double t_min, double t_max, Intersection* hit) {
 //				- Si intersection, mettre à jour les paramètres.
 // - Retourner l'intersection avec la profondeur maximale la plus PETITE.
 bool Naive::intersect(Ray ray, double t_min, double t_max, Intersection* hit) {
-    bool hit_found = false;
-    double closest_hit_distance = t_max;
+    bool   hit_found         = false;
+    double closest_hit_depth = t_max;
 
     for (auto& object : objects) {
         Intersection temp_hit;
-        if (object->intersect(ray, t_min, closest_hit_distance, &temp_hit)) {
-            hit_found = true;
-            closest_hit_distance = temp_hit.depth;
-            *hit = temp_hit;
+
+        if (object->intersect(ray, t_min, closest_hit_depth, &temp_hit)) {
+            if (temp_hit.depth < closest_hit_depth) {
+                hit_found         = true;
+                closest_hit_depth = fmin(closest_hit_depth, temp_hit.depth);
+                *hit              = temp_hit;
+            }
         }
     }
     return hit_found;

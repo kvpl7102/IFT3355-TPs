@@ -117,27 +117,33 @@ public:
 
     // Intersecte l'objet avec le rayon donné dans le repère global.
     // Retourne true s'il y a eu une intersection avec de l'information sur l'intersection.
-    bool intersect(Ray ray, 
-                   double t_min, double t_max, 
-                   Intersection* hit) {
+    bool intersect(
+        Ray           ray,
+        double        t_min,
+        double        t_max,
+        Intersection* hit
+    ) {
 
-        //Rayon dans le repère locale
-        Ray lray{mul(i_transform, {ray.origin,1}).xyz(), mul(i_transform, {ray.direction,0}).xyz()};
+        // Rayon dans le repère local
+        Ray local_ray {
+            mul(i_transform, {ray.origin   , 1}).xyz(),
+            mul(i_transform, {ray.direction, 0}).xyz()
+        };
         
         //!!! NOTE UTILE : Pour calculer la profondeur dans local_intersect(), si l'intersection se passe à
-        //                 ray.origin + ray.direction * t, alors t est la PROFONDEUR
+        //!                 ray.origin + ray.direction * t, alors t est la PROFONDEUR
         
         //!!! NOTE UTILE : Assurez-vous que la profondeur du rayon soit contenu entre t_min et t_max.
-        if (local_intersect(lray, t_min, t_max, hit)) 
+        if (local_intersect(local_ray, t_min, t_max, hit))
         {
             //!!! NOTE UTILE : Assurez-vous que la normale est bien normalisée
-            //                 et que les coordonnées UV sont contenus [0..1]
+            //!                et que les coordonnées UV sont contenues [0..1]
 
             hit->key_material = key_material;
 
             // Transforme les coordonnées de l'intersection dans le repère GLOBAL.
-            hit->position = mul(transform,{hit->position,1}).xyz();
-            hit->normal = normalize(mul(n_transform, hit->normal));
+            hit->position = mul(transform, {hit->position,1}).xyz();
+            hit->normal   = normalize(mul(n_transform, hit->normal));
             
             return true;
         }
@@ -188,8 +194,7 @@ protected:
 class Quad : public Object
 {
 public:
-    //Demi-Largeur
-    double half_size;
+    double half_size; // Demi-Largeur
 
     Quad(double s) : half_size(s){};
 
@@ -200,7 +205,7 @@ protected:
     virtual bool local_intersect(Ray const ray, double t_min, double t_max, Intersection* hit);
 };
 
-// Espace Local: Cylindre tel que l'axe principale est aligné à l'axe Y
+// Espace Local: Cylindre tel que l'axe principal est aligné à l'axe Y
 //               pour une hauteur (2 * half_height) avec un rayon (radius).
 class Cylinder : public Object
 {

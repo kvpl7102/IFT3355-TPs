@@ -20,13 +20,15 @@ int rsign(double value, double v0, double v1) {
 // Référez-vous au PDF pour la paramétrisation des coordonnées UV.
 //
 // Pour plus de d'informations sur la géométrie, référez-vous à la classe object.h.
-bool Sphere::local_intersect(Ray ray, 
-							 double t_min, double t_max, 
-							 Intersection *hit) 
-{
-	double a = dot(ray.direction, ray.direction);	
-	double b = 2 * dot(ray.direction, ray.origin);
-	double c = length2(ray.origin) -  pow(radius, 2);
+bool Sphere::local_intersect(
+    Ray           ray,
+	double        t_min,
+    double        t_max,
+	Intersection* hit
+) {
+	double a            = dot(ray.direction, ray.direction);
+	double b            = 2 * dot(ray.direction, ray.origin);
+	double c            = length2(ray.origin) - pow(radius, 2);
 	double discriminant = b * b - 4 * a * c;
 
 	if (b < 0) {
@@ -78,10 +80,35 @@ AABB Sphere::compute_aabb() {
 // Référez-vous au PDF pour la paramétrisation des coordonnées UV.
 //
 // Pour plus de d'informations sur la géométrie, référez-vous à la classe object.h.
-bool Quad::local_intersect(Ray ray, 
-							double t_min, double t_max, 
-							Intersection *hit)
-{	
+bool Quad::local_intersect(
+    Ray           ray,
+    double        t_min,
+    double        t_max,
+	Intersection* hit
+) {
+    printf("[x, y, z] = [%f, %f, %f] + t[%f, %f, %f],\n", ray.origin.x, ray.origin.y, ray.origin.z, ray.direction.x, ray.direction.y, ray.direction.z);
+
+
+    double3 intersection_pt {
+        ray.origin.x - ray.direction.x * ray.origin.z / ray.direction.z,
+        ray.origin.y - ray.direction.y * ray.origin.z / ray.direction.z,
+        0,
+    };
+    double3 depth = (intersection_pt - ray.origin)/ray.direction;
+
+    bool is_proper_depth  = t_min <= linalg::length(depth) <= t_max;
+    bool doesnt_intersect = std::isnan(intersection_pt.x) || std::isnan(intersection_pt.y) || std::isnan(intersection_pt.z);
+
+    if (not is_proper_depth || doesnt_intersect) {
+        return false;
+    }
+
+    if (intersection_pt.x <= half_size && intersection_pt.y <= half_size) { // successful hit
+        hit->position = intersection_pt;
+        hit->normal   = -normalize(hit->normal);
+    }
+
+
 	return false;
 }
 
@@ -90,7 +117,6 @@ bool Quad::local_intersect(Ray ray,
 // Il faut que le AABB englobe minimalement notre objet à moins que l'énoncé prononce le contraire.
 AABB Quad::compute_aabb() {
 	return Object::compute_aabb();
-	//return Object::compute_aabb();
 }
 
 // @@@@@@ VOTRE CODE ICI
@@ -99,10 +125,12 @@ AABB Quad::compute_aabb() {
 // Référez-vous au PDF pour la paramétrisation des coordonnées UV.
 //
 // Pour plus de d'informations sur la géométrie, référez-vous à la classe object.h.
-bool Cylinder::local_intersect(Ray ray, 
-							   double t_min, double t_max, 
-							   Intersection *hit)
-{
+bool Cylinder::local_intersect(
+    Ray           ray,
+    double        t_min,
+    double        t_max,
+	Intersection* hit
+) {
     return false;
 }
 
@@ -120,20 +148,22 @@ AABB Cylinder::compute_aabb() {
 //
 // Pour plus de d'informations sur la géométrie, référez-vous à la classe object.h.
 //
-bool Mesh::local_intersect(Ray ray,  
-						   double t_min, double t_max, 
-						   Intersection* hit)
-{
+bool Mesh::local_intersect(
+    Ray           ray,
+    double        t_min,
+    double        t_max,
+    Intersection* hit
+) {
 	double closest_hit_distance = std::numeric_limits<double>::max();
-	bool hit_found = false;
+	bool hit_found              = false;
 
 	// Parcourir tous les triangles
-	for (auto& tri : triangles) {
+	for (auto& triangle : triangles) {
 		Intersection temp_hit;
-		if (intersect_triangle(ray, t_min, closest_hit_distance, tri, &temp_hit)) {
-			hit_found = true;
+		if (intersect_triangle(ray, t_min, closest_hit_distance, triangle, &temp_hit)) {
+			hit_found            = true;
 			closest_hit_distance = temp_hit.depth;
-			*hit = temp_hit;
+			*hit                 = temp_hit;
 		}
 	}
 
@@ -144,15 +174,17 @@ bool Mesh::local_intersect(Ray ray,
 // @@@@@@ VOTRE CODE ICI
 // Occupez-vous de compléter cette fonction afin de trouver l'intersection avec un triangle.
 // S'il y a intersection, remplissez hit avec l'information sur la normale et les coordonnées texture.
-bool Mesh::intersect_triangle(Ray  ray, 
-							  double t_min, double t_max,
-							  Triangle const tri,
-							  Intersection *hit)
-{
+bool Mesh::intersect_triangle(
+    Ray            ray,
+    double         t_min,
+    double         t_max,
+    Triangle const triangle,
+	Intersection*  hit
+) {
 	// Extrait chaque position de sommet des données du maillage.
-	double3 const &p0 = positions[tri[0].pi]; // ou Sommet A (Pour faciliter les explications)
-	double3 const &p1 = positions[tri[1].pi]; // ou Sommet B
-	double3 const &p2 = positions[tri[2].pi]; // ou Sommet C
+	double3 const &p0 = positions[triangle[0].pi]; // ou Sommet A (Pour faciliter les explications)
+	double3 const &p1 = positions[triangle[1].pi]; // ou Sommet B
+	double3 const &p2 = positions[triangle[2].pi]; // ou Sommet C
 
 	// Triangle en question. Respectez la convention suivante pour vos variables.
 	//
