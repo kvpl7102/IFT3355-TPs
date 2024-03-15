@@ -86,24 +86,28 @@ bool Quad::local_intersect(
     double        t_max,
 	Intersection* hit
 ) {
-    printf("[x, y, z] = [%f, %f, %f] + t[%f, %f, %f],\n", ray.origin.x, ray.origin.y, ray.origin.z, ray.direction.x, ray.direction.y, ray.direction.z);
-
 
     double3 intersection_pt {
         ray.origin.x - ray.direction.x * ray.origin.z / ray.direction.z,
         ray.origin.y - ray.direction.y * ray.origin.z / ray.direction.z,
         0,
     };
-    double3 depth = (intersection_pt - ray.origin)/ray.direction;
+    double3 depth = (intersection_pt - ray.origin) / ray.direction;
+//    printf("origin: %f, %f, %f\n", ray.origin.x, ray.origin.y, ray.origin.z);
+    printf("inters   : %f, %f, %f\n", intersection_pt.x, intersection_pt.y, intersection_pt.z);
+    printf("half_size: %f\n", half_size);
+//    printf("depth : %f\n", linalg::length(depth));
+//    printf("max   : %f\n", t_max);
 
-    bool is_proper_depth  = t_min <= linalg::length(depth) <= t_max;
+    bool is_proper_depth  = t_min <= linalg::length(depth) && linalg::length(depth) <= t_max;
     bool doesnt_intersect = std::isnan(intersection_pt.x) || std::isnan(intersection_pt.y) || std::isnan(intersection_pt.z);
 
     if (not is_proper_depth || doesnt_intersect) {
         return false;
     }
-
+//    printf("you get here tho\n");
     if (intersection_pt.x <= half_size && intersection_pt.y <= half_size) { // successful hit
+        printf("intersects!!!!!!\n");
         hit->position = intersection_pt;
         hit->normal   = -normalize(hit->normal);
     }

@@ -24,26 +24,48 @@ void Raytracer::render(const Scene& scene, Frame* output)
     for (int i = 0; i < scene.resolution[0] * scene.resolution[1]; i ++) {
         z_buffer[i] = scene.camera.z_far; //Anciennement DBL_MAX. À remplacer avec la valeur de scene.camera.z_far
     }
-
     // Camera
+    double3 cam_position          = scene.camera.position;
     double3 cam_direction_forward = normalize(scene.camera.center - scene.camera.position);
     double3 cam_direction_up      = normalize(scene.camera.up);
     double3 cam_direction_right   = normalize(cross(cam_direction_forward, cam_direction_up));
-//    printf("cam_direction_forward = [%f, %f, %f],\n", cam_direction_forward.x, cam_direction_forward.y, cam_direction_forward.z);
-//    printf("cam_direction_up      = [%f, %f, %f],\n", cam_direction_up     .x, cam_direction_up     .y, cam_direction_up     .z);
-//    printf("cam_direction_right   = [%f, %f, %f],\n", cam_direction_right  .x, cam_direction_right  .y, cam_direction_right  .z);
-    double alpha = scene.camera.z_near / cam_direction_forward.y;
 
     // Projection plane
     double3 pjp_position = scene.camera.center;
-    double  pjp_hight    = 2*alpha * tan(deg2rad(scene.camera.fovy) );
-    double  pjp_width    = pjp_hight * scene.camera.aspect;
+    double  pjp_hight    = 2 * tan(deg2rad(scene.camera.fovy)) / linalg::distance(cam_position, pjp_position); // simply 2 * <soh cah toa>
+    double  pjp_width    = pjp_hight / scene.camera.aspect;
+
+
+    // Pixels
+    double pxl_hight = pjp_hight / scene.resolution[1];
+    double pxl_width = pjp_width / scene.resolution[0];
+
+    double3 top_left_pxl_position = pjp_position + cam_direction_up    * pxl_hight * pjp_hight/2 - pxl_hight/2
+                                                 - cam_direction_right * pxl_width * pjp_width/2 + pxl_width/2;
+
+//    printf("cam_direction_forward = [%f, %f, %f],\n", cam_direction_forward.x, cam_direction_forward.y, cam_direction_forward.z);
+//    printf("cam_direction_up      = [%f, %f, %f],\n", cam_direction_up     .x, cam_direction_up     .y, cam_direction_up     .z);
+//    printf("cam_direction_right   = [%f, %f, %f],\n", cam_direction_right  .x, cam_direction_right  .y, cam_direction_right  .z);
+
+//    double alpha = scene.camera.z_near / cam_direction_forward.y;
+
+    // d = 1/tan(alpha/2)
+    // Projection plane
+//    double3 pjp_position = scene.camera.center;
+//    double  pjp_hight    = tan(deg2rad(scene.camera.fovy));
+//    double  pjp_width    = pjp_hight * scene.camera.aspect;
 
     // Pixel dimensions according to camera
-    double  pxl_width           = pjp_width / scene.resolution[0];
-    double  pxl_hight           = pjp_hight / scene.resolution[1];
-    double3 pxl_top_left_corner = pjp_position - pjp_width/2 * cam_direction_right + pjp_hight/2 * cam_direction_up;
-                                               + pxl_width/2 * cam_direction_right - pxl_hight/2 * cam_direction_up;
+//    double  pxl_width           = pjp_width / scene.resolution[0];
+//    double  pxl_hight           = pjp_hight / scene.resolution[1];
+//    double3 pxl_top_left_corner = pjp_position - pjp_width/2 * cam_direction_right + pjp_hight/2 * cam_direction_up;
+//                                               + pxl_width/2 * cam_direction_right - pxl_hight/2 * cam_direction_up;
+
+    printf("resolution      : %d x %d\n"   , scene.resolution[0]    , scene.resolution[1]);
+    printf("camera position : %f, %f, %f\n", scene.camera.position.x, scene.camera.position.y, scene.camera.position.z);
+    printf("pjp position:   : %f, %f, %f\n", scene.camera.center  .x, scene.camera.center  .y, scene.camera.center  .z);
+//    printf("pjp   dimensions: %f x %f\n"   , pjp_width              , pjp_hight);
+//    printf("pixel dimensions: %f x %f\n"   , pxl_width              , pxl_hight);
 
     // Itère sur tous les pixels de l'image.
     for (int y = 0; y < scene.resolution[1]; y ++) {
@@ -51,30 +73,24 @@ void Raytracer::render(const Scene& scene, Frame* output)
 			std::cout << "\rScanlines completed: " << y << "/" << scene.resolution[1] << '\r';
 		}
 
-        for (int x = 0; x < scene.resolution[0]; x++) {
-
-			double3 avg_ray_color { 0, 0, 0 };
-            double  avg_z_depth  = 0;
-            double3 pxl_position = pxl_top_left_corner + x * pxl_width * cam_direction_right + y * pxl_hight * cam_direction_up;
+        for (int x = 0; x < scene.resolution[0]; x ++) {
+            double  avg_z_depth   = 0;
+            double3 avg_ray_color = { 0, 0, 0 };
+            double3 pxl_position  = top_left_pxl_position + cam_direction_right * pxl_width * x
+                                                          - cam_direction_up    * pxl_hight * y;
 
             for (int i = 0; i < scene.samples_per_pixel; i ++) {
+                double3 random_point_in_pxl = pxl_position + cam_direction_right * pxl_width * (rand_double() * 2 - 1) * scene.jitter_radius
+                                                           - cam_direction_up    * pxl_hight * (rand_double() * 2 - 1) * scene.jitter_radius;
 
-                double3 random_point_in_pxl = {
-                    pxl_position.x + rand_double() * scene.jitter_radius,
-                    pxl_position.y + rand_double() * scene.jitter_radius,
-                    pxl_position.z
-                };
-                double3 direction_to_pxl = normalize(double3 {
-                    random_point_in_pxl.x - scene.camera.position.x,
-                    random_point_in_pxl.y - scene.camera.position.y,
-                    random_point_in_pxl.z - scene.camera.position.z,
-                });
-//                printf("[x, y, z] = [%f, %f, %f] + t[%f, %f, %f],\n", random_point_in_pxl.x, random_point_in_pxl.y, random_point_in_pxl.z, cam_direction_forward.x, cam_direction_forward.y, cam_direction_forward.z);
+                double3 direction_to_random_point_in_pxl = normalize(random_point_in_pxl - cam_position);
 
-				Ray     ray         = Ray(random_point_in_pxl, direction_to_pxl);
+//                printf("[x, y, z] = [%f, %f, %f] + t[%f, %f, %f],\n", random_point_in_pxl.x, random_point_in_pxl.y, random_point_in_pxl.z, direction_to_pxl.x, direction_to_pxl.y, direction_to_pxl.z);
+
+				Ray     ray         = Ray(random_point_in_pxl, direction_to_random_point_in_pxl);
 				int     ray_depth   = 0;
-                double  out_z_depth = scene.camera.z_far;
-                double3 ray_color { 0, 0, 0 };
+                double  out_z_depth = z_buffer[x + y*scene.resolution[0]];
+                double3 ray_color   = { 0, 0, 0 };
 
                 trace(scene, ray, ray_depth, &ray_color, &out_z_depth);
 
@@ -145,27 +161,23 @@ void Raytracer::trace(
 	if (scene.container->intersect(ray, EPSILON, *out_z_depth, &hit)) {
         Material& material = ResourceManager::Instance()->materials[hit.key_material];
 
-        if (ray_depth < MAX_DEPTH) {
+        if (ray_depth < scene.max_ray_depth) {
             if (abs(material.k_reflection) >= EPSILON) { // Find reflection color recursively
-                double3 reflected_color     = { 255, 255, 255 };
+                double3 reflected_color     = { 0, 0, 0 };
                 double3 reflected_direction = reflect(ray.direction, hit);
                 Ray     reflected_ray       = Ray(hit.position, reflected_direction);
+                ray_depth ++;
 
-                if (ray_depth < scene.max_ray_depth) {
-                    ray_depth ++;
-                    trace(scene, reflected_ray, ray_depth, &reflected_color, out_z_depth);
-                }
+                trace(scene, reflected_ray, ray_depth, &reflected_color, out_z_depth);
             }
 
             if (abs(material.k_refraction) >= EPSILON) { // Find refraction color recursively
                 double3 refracted_color     = { 255, 255, 255 };
                 double3 refracted_direction = refract(ray.direction, hit, 1, material.refractive_index); // n1 is 1 for air
                 Ray     refracted_ray       = Ray(hit.position, refracted_direction);
+                ray_depth ++;
 
-                if (ray_depth < scene.max_ray_depth) {
-                    ray_depth ++;
-                    trace(scene, refracted_ray, ray_depth, &refracted_color, out_z_depth);
-                }
+                trace(scene, refracted_ray, ray_depth, &refracted_color, out_z_depth);
             }
         }
 

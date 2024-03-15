@@ -65,7 +65,10 @@ bool Naive::intersect(Ray ray, double t_min, double t_max, Intersection* hit) {
     for (auto& object : objects) {
         Intersection temp_hit;
 
-        if (object->intersect(ray, t_min, closest_hit_depth, &temp_hit)) {
+        if (object->compute_aabb().intersect(ray, t_min, t_max)) {
+            if (object->intersect(ray, t_min, t_max, &temp_hit)) {
+
+            }
             if (temp_hit.depth < closest_hit_depth) {
                 hit_found         = true;
                 closest_hit_depth = fmin(closest_hit_depth, temp_hit.depth);
