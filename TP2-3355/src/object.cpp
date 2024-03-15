@@ -35,13 +35,10 @@ double3 transform_point(double3 point, double4x4 transform) {
 // Référez-vous au PDF pour la paramétrisation des coordonnées UV.
 //
 // Pour plus de d'informations sur la géométrie, référez-vous à la classe object.h.
-bool Sphere::local_intersect(Ray ray, 
-							 double t_min, double t_max, 
-							 Intersection *hit) 
-{
-	double a = dot(ray.direction, ray.direction);	
+bool Sphere::local_intersect(Ray ray, double t_min, double t_max, Intersection *hit) {
+	double a = dot(ray.direction, ray.direction);
 	double b = 2 * dot(ray.direction, ray.origin);
-	double c = length2(ray.origin) -  pow(radius, 2);
+	double c = length2(ray.origin) - pow(radius, 2);
 	double discriminant = b * b - 4 * a * c;
 
 	if (b < 0) {
@@ -57,16 +54,19 @@ bool Sphere::local_intersect(Ray ray,
 			hit->depth = t_0;
 			hit->position = ray.origin + t_0 * ray.direction;
 			hit->normal = normalize(hit->position);
+			hit->uv.x = (atan2(hit->position.y, hit->position.x) + PI) / (2 * PI);
+			hit->uv.y = (hit->position.z - (-radius)) / (2 * radius);
 			return true;
 		} else if (t_1 > t_min && t_1 < t_max) {
 			// If t_1 is within the valid range, set the intersection information
 			hit->depth = t_1;
 			hit->position = ray.origin + t_1 * ray.direction;
 			hit->normal = normalize(hit->position);
+			hit->uv.x = (atan2(hit->position.y, hit->position.x) + PI) / (2 * PI);
+			hit->uv.y = (hit->position.z - (-radius)) / (2 * radius);
 			return true;
 		}
-	} 
-	else if (discriminant == 0) { // 1 intersection point
+	} else if (discriminant == 0) { // 1 intersection point
 		// Calculate the single intersection depth
 		double t = -b / (2 * a);
 		if (t > t_min && t < t_max) {
@@ -74,6 +74,8 @@ bool Sphere::local_intersect(Ray ray,
 			hit->depth = t;
 			hit->position = ray.origin + t * ray.direction;
 			hit->normal = normalize(hit->position);
+			hit->uv.x = (atan2(hit->position.y, hit->position.x) + PI) / (2 * PI);
+			hit->uv.y = (hit->position.z - (-radius)) / (2 * radius);
 			return true;
 		}
 	}
@@ -101,21 +103,18 @@ AABB Sphere::compute_aabb() {
 // Référez-vous au PDF pour la paramétrisation des coordonnées UV.
 //
 // Pour plus de d'informations sur la géométrie, référez-vous à la classe object.h.
-bool Quad::local_intersect(Ray ray, 
-							double t_min, double t_max, 
-							Intersection *hit)
-{	
-
+bool Quad::local_intersect(Ray ray, double t_min, double t_max, Intersection *hit)
+{
 	// The normal vector of the quad
-    double3 normal = double3(0, 0, 1);
+	double3 normal = double3(0, 0, 1);
 
-    // The denominator of the t parameter in the ray-plane intersection formula
-    double denominator = dot(ray.direction, normal);
+	// The denominator of the t parameter in the ray-plane intersection formula
+	double denominator = dot(ray.direction, normal);
 
-    // If the ray is parallel to the quad, there's no intersection
-    if (abs(denominator) < 1e-6) {
-        return false;
-    }
+	// If the ray is parallel to the quad, there's no intersection
+	if (abs(denominator) < 1e-6) {
+		return false;
+	}
 
 	double t = dot(double3(0, 0, 1) - ray.origin, normal) / denominator;
 
@@ -135,6 +134,10 @@ bool Quad::local_intersect(Ray ray,
 	hit->depth = t;
 	hit->position = intersection;
 	hit->normal = normal;
+
+	// Calculate UV coordinates
+	hit->uv.x = (intersection.x + 1) / 2;
+	hit->uv.y = (intersection.y + 1) / 2;
 
 	return true;
 }
@@ -165,9 +168,7 @@ AABB Quad::compute_aabb() {
 // Référez-vous au PDF pour la paramétrisation des coordonnées UV.
 //
 // Pour plus de d'informations sur la géométrie, référez-vous à la classe object.h.
-bool Cylinder::local_intersect(Ray ray, 
-							   double t_min, double t_max, 
-							   Intersection *hit)
+bool Cylinder::local_intersect(Ray ray, double t_min, double t_max, Intersection *hit)
 {
 	// Calculate the coefficients of the quadratic equation for the intersection of the ray with the cylinder
 	double a = pow(ray.direction.x, 2) + pow(ray.direction.z, 2);
@@ -190,12 +191,28 @@ bool Cylinder::local_intersect(Ray ray,
 		hit->depth = t_0;
 		hit->position = ray.origin + t_0 * ray.direction;
 		hit->normal = double3(hit->position.x, 0, hit->position.z);
+
+		// Calculate UV coordinates
+		double u = atan2(hit->position.x, hit->position.z) / (2 * PI);
+		double v = hit->position.y;
+
+		// Update UV coordinates
+		hit->uv = double2(u, v);
+
 		return true;
 	} else if (t_1 > t_min && t_1 < t_max) {
 		// Set the intersection information for t_1
 		hit->depth = t_1;
 		hit->position = ray.origin + t_1 * ray.direction;
 		hit->normal = double3(hit->position.x, 0, hit->position.z);
+
+		// Calculate UV coordinates
+		double u = atan2(hit->position.x, hit->position.z) / (2 * PI);
+		double v = hit->position.y;
+
+		// Update UV coordinates
+		hit->uv = double2(u, v);
+
 		return true;
 	}
 

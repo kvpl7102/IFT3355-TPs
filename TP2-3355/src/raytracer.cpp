@@ -17,7 +17,8 @@
 #include <math.h>
 
 void Raytracer::render(const Scene& scene, Frame* output)
-{       
+{
+    
     // Crée le z_buffer.
     double *z_buffer = new double[scene.resolution[0] * scene.resolution[1]];
     for(int i = 0; i < scene.resolution[0] * scene.resolution[1]; i++) {
@@ -115,7 +116,6 @@ void Raytracer::trace(const Scene& scene,
 	if(scene.container->intersect(ray,EPSILON,*out_z_depth,&hit)) {		
 		Material& material = ResourceManager::Instance()->materials[hit.key_material];
 		
-
 		// @@@@@@ VOTRE CODE ICI
 		// Déterminer la couleur associée à la réflection d'un rayon de manière récursive.
 				
@@ -132,8 +132,12 @@ void Raytracer::trace(const Scene& scene,
 				if (ray_depth < scene.max_ray_depth) {
 					trace(scene, reflected_lightRay, ray_depth++, &reflected_color, &reflected_z_depth);
 				}
+
+				// Update shading for the intersection point by weighting according to the reflected color
+				*out_color += material.k_reflection * reflected_color;
 			}
 		}
+		
 		// @@@@@@ VOTRE CODE ICI
 		// Déterminer la couleur associée à la réfraction d'un rayon de manière récursive.
 		if (!(abs(material.k_refraction) < EPSILON) && (ray_depth < MAX_DEPTH)) { // if refracted
@@ -150,6 +154,9 @@ void Raytracer::trace(const Scene& scene,
 			if (ray_depth < scene.max_ray_depth) {
 				trace(scene, refracted_lightRay, ray_depth++, &refracted_color, &refracted_z_depth);
 			}
+
+			// Update shading for the intersection point by weighting according to the transmitted color
+			*out_color += material.k_refraction * refracted_color;
 		} 
 		// Assumez que l'extérieur/l'air a un indice de réfraction de 1.
 		//
@@ -177,7 +184,31 @@ void Raytracer::trace(const Scene& scene,
 double3 Raytracer::shade(const Scene& scene, Intersection hit)
 {
 	Material& material = ResourceManager::Instance()->materials[hit.key_material];
-	double3 color = material.color_albedo;
+	double3 color;
+
+	if (material.texture_albedo.width() > 0 && material.texture_albedo.height() > 0) {
+		// Calculate UV coordinates
+		double u = hit.uv.x;
+		double v = hit.uv.y;
+
+		// Get the color from the texture at the UV coordinates
+		int x = static_cast<int>(u * material.texture_albedo.width());
+		int y = static_cast<int>(v * material.texture_albedo.height());
+		rgb_t texture_color = material.texture_albedo.get_pixel(x, y);
+
+		// Convert the texture color to double3 in the range [0, 1]
+		color = double3{ texture_color.red / 255.0, texture_color.green / 255.0, texture_color.blue / 255.0 };
+	} else {
+		// Use the color_albedo if the texture is missing
+		color = material.color_albedo;
+	}
+
+	// Ambient contribution
+	double3 ambient = scene.ambient_light * material.k_ambient;
+
+	// Diffuse and specular contributions
+	double3 diffuse{0, 0, 0};
+	double3 specular{0, 0, 0};
 
 	// Ambient contribution
 	double3 ambient = scene.ambient_light * material.k_ambient;

@@ -22,7 +22,6 @@ int main(int argc, char **argv)
 {	
 	//[0]: cmd
 	//[1]: scene filename
-
 	if (!(argc == 2)) {
 		std::cerr << "Entry must respect the following: cmd scene_filename";
 		return 0;
