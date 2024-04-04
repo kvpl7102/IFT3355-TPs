@@ -1,0 +1,2 @@
+/usr/bin/ar qc libpcg32.a 
+/usr/bin/ranlib libpcg32.a

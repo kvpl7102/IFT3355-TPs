@@ -1,0 +1,20 @@
+C:\Windows\system32\wsl.exe --distribution Ubuntu --exec /bin/bash -c "export CMAKE_COLOR_DIAGNOSTICS=ON && export CLION_IDE=TRUE && export JETBRAINS_IDE=TRUE && cd /mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug && /snap/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G 'CodeBlocks - Unix Makefiles' -S /mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355 -B /mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug"
+CMake Deprecation Warning:
+  Support for "Extra Generators" like
+
+    CodeBlocks
+
+  is deprecated and will be removed from a future version of CMake.  IDEs may
+  use the cmake-file-api(7) to view CMake-generated project build trees.
+
+
+-- The CXX compiler identification is GNU 11.4.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+Cur: /mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355 Bin: /mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug
+-- Configuring done (2.6s)
+-- Generating done (0.5s)
+-- Build files have been written to: /mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug

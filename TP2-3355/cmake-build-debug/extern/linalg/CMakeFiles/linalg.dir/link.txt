@@ -1,0 +1,2 @@
+/usr/bin/ar qc liblinalg.a 
+/usr/bin/ranlib liblinalg.a

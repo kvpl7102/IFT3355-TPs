@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="RAY"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\extern\;CMake Files\extern\bitmap_image\;CMake Files\extern\linalg\;CMake Files\extern\pcg32\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="RAY">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/RAY" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="$&lt;1:/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug&gt;"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src"/>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 RAY"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="RAY/fast">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/RAY" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="$&lt;1:/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug&gt;"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src"/>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 RAY/fast"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="link_target">
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 link_target"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bitmap_image">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/libbitmap_image.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/bitmap_image"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 bitmap_image"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="bitmap_image/fast">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/libbitmap_image.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/bitmap_image"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 bitmap_image/fast"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/bitmap_image/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="linalg">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/liblinalg.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/linalg"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 linalg"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="linalg/fast">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/liblinalg.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/linalg"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 linalg/fast"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/linalg/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="pcg32">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/libpcg32.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/pcg32"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 pcg32"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="pcg32/fast">
+				<Option output="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/libpcg32.a" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32"/>
+				<Option object_output="./"/>
+				<Option type="2"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/pcg32"/>
+					<Add directory="/usr/include/c++/11"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/11"/>
+					<Add directory="/usr/include/c++/11/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/11/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 pcg32/fast"/>
+					<CompileFile command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/gmake -j20 -f &quot;/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/cmake-build-debug/extern/pcg32/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/bitmap_image/bitmap_image.h">
+			<Option target="bitmap_image"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/linalg/linalg.h">
+			<Option target="linalg"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/pcg32/pcg32.h">
+			<Option target="pcg32"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/aabb.cpp">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/aabb.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/basic.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/container.cpp">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/container.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/frame.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/main.cpp">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/object.cpp">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/object.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/parser.cpp">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/parser.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/raytracer.cpp">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/raytracer.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/resource_manager.cpp">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/resource_manager.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/src/scene.h">
+			<Option target="RAY"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\extern\"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/bitmap_image/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\extern\bitmap_image\"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/linalg/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\extern\linalg\"/>
+		</Unit>
+		<Unit filename="/mnt/e/UDEM/UDEM_H24/IFT3355/IFT3355-TPs/TP2-3355/extern/pcg32/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\extern\pcg32\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

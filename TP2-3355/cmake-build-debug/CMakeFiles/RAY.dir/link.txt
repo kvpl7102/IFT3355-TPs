@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/RAY.dir/src/main.cpp.o CMakeFiles/RAY.dir/src/object.cpp.o CMakeFiles/RAY.dir/src/parser.cpp.o CMakeFiles/RAY.dir/src/raytracer.cpp.o CMakeFiles/RAY.dir/src/container.cpp.o CMakeFiles/RAY.dir/src/aabb.cpp.o CMakeFiles/RAY.dir/src/resource_manager.cpp.o -o RAY 

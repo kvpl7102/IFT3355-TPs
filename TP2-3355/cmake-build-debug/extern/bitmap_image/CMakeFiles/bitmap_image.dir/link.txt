@@ -1,0 +1,2 @@
+/usr/bin/ar qc libbitmap_image.a 
+/usr/bin/ranlib libbitmap_image.a
