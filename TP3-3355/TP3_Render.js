@@ -1,151 +1,158 @@
+
+class Branch {
+  constructor(node, radialDivisions) {
+    this.node            = node
+    this.radialDivisions = radialDivisions
+
+    this.init();
+    
+  }
+
+  init() {
+    this.length          = this.node.p0.distanceTo(this.node.p1)
+    this.geometry        = new THREE.CylinderBufferGeometry(this.node.a1, this.node.a0, this.length, this.radialDivisions);
+    this.axisAngle       = TP3.Geometry.findRotation(new THREE.Vector3(0, 1, 0), new THREE.Vector3().subVectors(this.node.p1, this.node.p0));
+    this.rotationMatrix  = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(this.axisAngle[0], this.axisAngle[1]));
+
+    this.geometry.applyMatrix4(this.rotationMatrix);
+    this.geometry.translate( // move to center
+      (this.node.p0.x + this.node.p1.x) / 2,
+      (this.node.p0.y + this.node.p1.y) / 2,
+      (this.node.p0.z + this.node.p1.z) / 2,
+    );
+  }
+}
+
+class Apple {
+  constructor(branch, alpha) {
+    this.branch = branch
+    this.alpha  = alpha
+
+    this.init()
+  }
+
+  init() {
+    this.geometry = new THREE.SphereBufferGeometry(0.1, 8, 8);
+
+    let h     = (Math.random() - 0.5) * this.alpha * 2; // random position along the branch
+    let theta = Math.random() * Math.PI    * 2; // random translation angle
+    let r     = Math.random() * this.alpha / 2; // random distance from branch
+
+    const x = r * Math.cos(theta)
+    const y = r * Math.sin(theta)
+    const z = h
+
+    const position = this.branch.node.p1.add(new THREE.Vector3(x, y, z));
+
+    this.geometry.translate(position.x, position.y, position.z);
+  }
+}
+
+
+class Leaf {
+  constructor(branch, alpha) {
+    this.branch = branch
+    this.alpha  = alpha
+    
+    this.init()
+  }
+
+  init() {
+    this.geometry = new THREE.PlaneBufferGeometry(this.alpha, this.alpha)
+
+    let h     = (Math.random() - 0.5) * this.alpha * 2; // random position along the branch
+    let theta = Math.random() * Math.PI    * 2; // random translation angle
+    let r     = Math.random() * this.alpha / 2; // random distance from branch
+
+    // apply random rotation
+    this.geometry.rotateX(Math.random() * Math.PI * 2);
+    this.geometry.rotateY(Math.random() * Math.PI * 2);
+    this.geometry.rotateZ(Math.random() * Math.PI * 2);
+
+        
+    const x = r * Math.cos(theta)
+    const y = r * Math.sin(theta)
+    const z = h
+
+    const position = this.branch.node.p1.add(new THREE.Vector3(x, y, z));
+
+    this.geometry.translate(position.x, position.y, position.z);
+  }
+}
+
+class Tree {
+  constructor(branches, apples, leaves) {
+    this.branches = branches
+    this.apples   = apples
+    this.leaves   = leaves
+
+    this.init()
+  }
+
+  init() {
+    
+    let branchGeometries = Array.from(this.branches, (branch) => branch.geometry)
+    let appleGeometries  = Array.from(this.apples  , (apple ) => apple .geometry)
+    let leafGeometries   = Array.from(this.leaves  , (leaf  ) => leaf  .geometry)
+    
+    // merge branches
+    if (branchGeometries.length > 0) {
+      this.branchesGeometry = new THREE.CylinderBufferGeometry();
+      this.branchesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(branchGeometries);
+      this.branchesGeometry = new THREE.Mesh(this.branchesGeometry, new THREE.MeshLambertMaterial({ color: 0x8b5a2b }));
+    }
+
+    // merge apples
+    if (appleGeometries.length > 0) {
+      console.log(appleGeometries)
+      this.applesGeometry = new THREE.SphereBufferGeometry();
+      this.applesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(appleGeometries);
+      this.applesGeometry = new THREE.Mesh(this.applesGeometry, new THREE.MeshPhongMaterial({ color: 0x5f0b0b }));
+    }
+
+    // merge leaves
+    if (leafGeometries.length > 0) {
+      this.leavesGeometry = new THREE.PlaneBufferGeometry();
+      this.leavesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(leafGeometries);
+      this.leavesGeometry = new THREE.Mesh(this.leavesGeometry, new THREE.MeshPhongMaterial({ color: 0x3a5f0b }));
+    }
+  }
+}
+
+
 TP3.Render = {
   drawTreeRough: function (
     rootNode,
     scene,
     alpha,
-    radialDivisions = 8,
-    leavesCutoff = 0.1,
-    leavesDensity = 10,
+    radialDivisions   = 8,
+    leavesCutoff      = 0.1,
+    leavesDensity     = 10,
     applesProbability = 0.05,
-    matrix = new THREE.Matrix4()
+    matrix            = new THREE.Matrix4()
   ) {
-    //TODO
-    geometries = new Array();
-    leafGeometries = new Array();
-    appleGeometries = new Array();
 
-    // Commencer par générer la branche à rootNode
-    var length = rootNode.p0.distanceTo(rootNode.p1);
+    let branches = []
+    let apples   = []
+    let leaves   = []
+    
+    let branch = new Branch(rootNode, radialDivisions)
+    branches.push(branch)
 
-    var branch = new THREE.CylinderBufferGeometry(
-      rootNode.a1,
-      rootNode.a0,
-      length,
-      radialDivisions
-    );
+    if (Math.random() < applesProbability) { // Create apple
+      apples.push(new Apple(branch, alpha))
+    }
 
-    let axisAngle = TP3.Geometry.findRotation(
-      new THREE.Vector3(0, 1, 0),
-      new THREE.Vector3().subVectors(rootNode.p1, rootNode.p0)
-    );
-    let rotMatrix = new THREE.Matrix4().makeRotationFromQuaternion(
-      new THREE.Quaternion().setFromAxisAngle(axisAngle[0], axisAngle[1])
-    );
-
-    branch.applyMatrix4(rotMatrix);
-    branch.translate(
-      (rootNode.p0.x + rootNode.p1.x) / 2,
-      (rootNode.p0.y + rootNode.p1.y) / 2,
-      (rootNode.p0.z + rootNode.p1.z) / 2
-    );
-    geometries.push(branch);
-
-    // Créer les plans dans lesquels seront situés les feuilles
-    if (rootNode.a0 < alpha * leavesCutoff) {
-      //Si la branche n'est pas terminale
-      if (rootNode.childNode != undefined) {
-        for (var i = 0; i < leavesDensity; i++) {
-          var leaf = new THREE.PlaneBufferGeometry(alpha, alpha);
-
-          //Random sur la ligne
-          var h = Math.random() * alpha;
-          //Rotation random
-          var theta = Math.random() * Math.PI * 2;
-          //Random entre la ligne et la circomférence
-          var r = (Math.random() * alpha) / 2;
-
-          //Transformer en cartésien
-          var point = new THREE.Vector3(
-            r * Math.cos(theta),
-            r * Math.sin(theta),
-            h
-          );
-
-          //Appliquer le random sur notre référentiel (p1)
-          var finalPoint = point.add(rootNode.p1);
-
-          //Appliquer une rotation aléatoirement
-          leaf.rotateX(Math.random() * Math.PI * 2);
-          leaf.rotateY(Math.random() * Math.PI * 2);
-          leaf.rotateZ(Math.random() * Math.PI * 2);
-
-          leaf.translate(finalPoint.x, finalPoint.y, finalPoint.z);
-
-          leafGeometries.push(leaf);
-        }
-      }
-      // //Si la branche est terminale
-      else {
-        for (let i = 0; i < leavesDensity; i++) {
-          var leaf = new THREE.Mesh(
-            new THREE.PlaneBufferGeometry(alpha, alpha),
-            new THREE.MeshPhongMaterial({ color: 0x3a5f0b })
-          );
-
-          //Random sur la ligne
-          var h = Math.random() * (alpha * 2);
-          //Rotation random
-          var theta = Math.random() * Math.PI * 2;
-          //Random entre la ligne et la circomférence
-          var r = (Math.random() * alpha) / 2;
-
-          //Transformer en cartésien
-          var point = new THREE.Vector3(
-            r * Math.cos(theta),
-            r * Math.sin(theta),
-            h
-          );
-
-          //Appliquer le random sur notre référentiel (p1)
-          var finalPoint = point.add(rootNode.p1);
-
-          //Appliquer une rotation aléatoirement
-          leaf.rotateX(Math.random() * Math.PI * 2);
-          leaf.rotateY(Math.random() * Math.PI * 2);
-          leaf.rotateZ(Math.random() * Math.PI * 2);
-
-          leaf.translate(finalPoint.x, finalPoint.y, finalPoint.z);
-
-          leafGeometries.push(leaf);
-        }
+    if (branch.node.a0 < alpha * leavesCutoff) { // Create leaves
+      for (var i = 0; i < leavesDensity; i++) {
+        leaves.push(new Leaf(branch, alpha));
       }
     }
 
-    // Créer les pommes
-    if (Math.random() < applesProbability) {
-      var apple = new THREE.Mesh(
-        new THREE.SphereBufferGeometry(0.1, 8, 8),
-        new THREE.MeshPhongMaterial({ color: 0x5f0b0b })
-      );
-
-      //Random sur la ligne
-      var h = Math.random() * (alpha * 2);
-      //Rotation random
-      var theta = Math.random() * Math.PI * 2;
-      //Random entre la ligne et la circomférence
-      var r = (Math.random() * alpha) / 2;
-
-      //Transformer en cartésien
-      var point = new THREE.Vector3(
-        r * Math.cos(theta),
-        r * Math.sin(theta),
-        h
-      );
-
-      //Appliquer le random sur notre référentiel (p1)
-      var finalPoint = point.add(rootNode.p1);
-
-      apple.translate(finalPoint.x, finalPoint.y, finalPoint.z);
-
-      appleGeometries.push(apple);
-    }
-
-    // Créer les branches enfants
-    if (rootNode.childNode != undefined) {
+    if (rootNode.childNode !== undefined) { // recurse children
       for (var i = 0; i < rootNode.childNode.length; i++) {
-        var child = rootNode.childNode[i];
-        this.drawTreeRough(
-          child,
+        let geometries = this.drawTreeRough(
+          rootNode.childNode[i],
           scene,
           alpha,
           radialDivisions,
@@ -154,41 +161,22 @@ TP3.Render = {
           applesProbability,
           matrix
         );
+
+        geometries[0].forEach((branch) => branches.push(branch))
+        geometries[1].forEach((apple ) => apples  .push(apple ))
+        geometries[2].forEach((leaf  ) => leaves  .push(leaf  ))
       }
     }
+    if (rootNode.parentNode === null) {
+      let tree = new Tree(branches, apples, leaves)
 
-    if (rootNode.parentNode == undefined) {
-      
-      //Merge pour les branches
-      let treeGeometry = new THREE.CylinderBufferGeometry();
-      treeGeometry =
-        THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
-      const tree = new THREE.Mesh(
-        treeGeometry,
-        new THREE.MeshLambertMaterial({ color: 0x8b5a2b })
-      );
-      scene.add(tree);
-
-      // Merge pour les feuilles
-      let leavesGeometry = new THREE.PlaneBufferGeometry();
-      leavesGeometry =
-        THREE.BufferGeometryUtils.mergeBufferGeometries(leafGeometries);
-      const leaves = new THREE.Mesh(
-        leavesGeometry,
-        new THREE.MeshPhongMaterial({ color: 0x3a5f0b })
-      );
-      scene.add(leaves);
-
-      // Merge pour les pommes
-      let applesGeometry = new THREE.SphereBufferGeometry();
-      applesGeometry =
-        THREE.BufferGeometryUtils.mergeBufferGeometries(appleGeometries);
-      const apples = new THREE.Mesh(
-        applesGeometry,
-        new THREE.MeshPhongMaterial({ color: 0x5f0b0b })
-      );
-      scene.add(apples);
+      if (tree.branchesGeometry !== undefined) scene.add(tree.branchesGeometry)
+      if (tree.applesGeometry   !== undefined) scene.add(tree.applesGeometry)
+      if (tree.leavesGeometry   !== undefined) scene.add(tree.leavesGeometry)
     }
+    
+
+    return [branches, apples, leaves]
   },
 
   drawTreeHermite: function (

@@ -1,112 +1,82 @@
+// const { Vector3 } = require("./js/three");
+
 class Node {
   constructor(parentNode) {
-    this.parentNode = parentNode; //Noeud parent
-    this.childNode = []; //Noeud enfants
+    this.parentNode = parentNode;
+    this.childNode  = []; // why isnt this plural ??
 
-    this.p0 = null; //Position de depart de la branche
-    this.p1 = null; //Position finale de la branche
+    this.p0         = null; // Position de depart de la branche
+    this.p1         = null; // Position finale de la branche
 
-    this.a0 = null; //Rayon de la branche a p0
-    this.a1 = null; //Rayon de la branche a p1
+    this.a0         = null; // Rayon de la branche a p0
+    this.a1         = null; // Rayon de la branche a p1
 
-    this.sections = null; //Liste contenant une liste de points representant les segments circulaires du cylindre generalise
+    this.sections   = null; // Liste contenant une liste de points representant les segments circulaires du cylindre generalise
   }
 }
 
 TP3.Geometry = {
   simplifySkeleton: function (rootNode, rotationThreshold = 0.0001) {
-    //TODO
-
-	// If the node has no children, return (end of the loop)
-	if (rootNode.childNode == undefined) {
-	  return rootNode;
-	}
-
-	// The node must have only one child to be removed
-	if (rootNode.childNode.length == 1) {
-	  let rootVect = new THREE.Vector3().subVectors(rootNode.p1, rootNode.p0);
-	  let childVect = new THREE.Vector3().subVectors(
-		rootNode.childNode[0].p1,
-		rootNode.childNode[0].p0
-	  );
-	  let angle = this.findRotation(rootVect, childVect)[1]; // Angle between the node and its child
-
-	  // If the angle is smaller than the threshold
-	  if (angle < rotationThreshold) {
-		// Update a1, p1, and the children of root
-		rootNode.a1 = rootNode.childNode[0].a1;
-		rootNode.p1 = rootNode.childNode[0].p1;
-		rootNode.childNode = rootNode.childNode[0].childNode;
-
-		// Update a0, p0, and parentNode of the new children if they exist
-		if (rootNode.childNode != undefined) {
-		  for (let i = 0; i < rootNode.childNode.length; i++) {
-			rootNode.childNode[i].a0 = rootNode.a1;
-			rootNode.childNode[i].p0 = rootNode.p1;
-			rootNode.childNode[i].parentNode = rootNode;
-		  }
-		}
-
-		// Recursion on root
-		return this.simplifySkeleton(rootNode, rotationThreshold);
-	  } else {
-		// Otherwise, recurse on the child and return root
-		rootNode.childNode[0] = this.simplifySkeleton(
-		  rootNode.childNode[0],
-		  rotationThreshold
-		);
-		return rootNode;
-	  }
-	} else {
-	  // More than one child, recurse on the children and return root
-	  for (let i = 0; i < rootNode.childNode.length; i++) {
-		rootNode.childNode[i] = this.simplifySkeleton(
-		  rootNode.childNode[i],
-		  rotationThreshold
-		);
-	  }
-	  return rootNode;
-	}
-  },
-
-  generateSegmentsHermite: function (
-    rootNode,
-    lengthDivisions = 4,
-    radialDivisions = 8
-  ) {
-    //TODO
-	
-    rootNode.sections = new Array(lengthDivisions); //Initialisation de la liste des sections
-
-    let allPs = new Array(lengthDivisions); //Liste de tous les (p,v) des segments
-
-    //Si on est à la racine (on considère la normale comme Vector3(0,1,0) direction initiale de la tortue dans le monde sans transformation)
-    if (rootNode.parentNode == undefined) {
-      allPs[0] = [rootNode.p0, new THREE.Vector3(0, 1, 0)];
-    } else {
-      //Si on n'est pas à la racine, on peut utiliser le parent
-      allPs[0] = [
-        rootNode.p0,
-        new THREE.Vector3().subVectors(
-          rootNode.parentNode.p1,
-          rootNode.parentNode.p0
-        ),
-      ]; //p0,v0 de début
+    
+    if (rootNode.childNode === null) {
+      return rootNode;
     }
 
-    allPs[allPs.length - 1] = [
-      rootNode.p1,
-      new THREE.Vector3().subVectors(rootNode.p1, rootNode.p0),
-    ]; //p1,v1 de fin
+    if (rootNode.childNode.length !== 1) {
+      rootNode.childNode.forEach((node) => node = this.simplifySkeleton(node, rotationThreshold));
 
-    for (let i = 0; i < rootNode.sections.length; i++) {
+      return rootNode;
+    }
+
+    let childNode = rootNode.childNode[0]; // root node has one child
+    let rootVect  = new THREE.Vector3().subVectors(rootNode .p1, rootNode .p0);
+    let childVect = new THREE.Vector3().subVectors(childNode.p1, childNode.p0);
+
+    let angle     = this.findRotation(rootVect, childVect)[1];
+
+    if (angle < rotationThreshold) { // must remove node
+      rootNode.a1        = childNode.a1;
+      rootNode.p1        = childNode.p1;
+      rootNode.childNode = childNode.childNode;
+
+      
+      if (rootNode.childNode === null) { // no new children
+        rootNode.childNode[0] = this.simplifySkeleton(rootNode.childNode[0], rotationThreshold);
+
+        return rootNode;
+      }
+      
+      // Update a0, p0, and parentNode of the new children
+      for (let i = 0; i < rootNode.childNode.length; i++) {
+        rootNode.childNode[i].a0         = rootNode.a1;
+        rootNode.childNode[i].p0         = rootNode.p1;
+        rootNode.childNode[i].parentNode = rootNode;
+      }
+    }
+
+    return this.simplifySkeleton(rootNode, rotationThreshold); // Recurse on root
+  },
+
+  generateSegmentsHermite: function (rootNode, lengthDivisions = 4, radialDivisions = 8) {
+    rootNode.sections = new Array(lengthDivisions);
+    let segments      = new Array(lengthDivisions); // (point, vector) of segments
+
+    let lastVector  = new THREE.Vector3().subVectors(rootNode.p1, rootNode.p0)
+    let firstVector = rootNode.parentNode === null 
+        ? new THREE.Vector3(0, 1, 0) 
+        : new THREE.Vector3().subVectors(rootNode.parentNode.p1, rootNode.parentNode.p0)
+
+    segments[0                  ] = [rootNode.p0, firstVector]; // start p1, v1
+    segments[segments.length - 1] = [rootNode.p1, lastVector ]; // end p1,v1
+    
+    for (let i = 0; i < lengthDivisions; i++) {
       //On ignore nos valeurs déjà définies
-      if (i != 0 || i != allPs.length - 1) {
-        allPs[i] = this.hermite(
+      if (i !== 0 && i !== lengthDivisions - 1) {
+        segments[i] = this.hermite(
           rootNode.p0,
           rootNode.p1,
-          allPs[0][1],
-          allPs[allPs.length - 1][1],
+          segments[0][1],
+          segments[segments.length - 1][1],
           i / (lengthDivisions - 1)
         );
       }
@@ -132,42 +102,39 @@ TP3.Geometry = {
 
       //On travaille sur le rootNode
       let decay = rootNode.a1 / rootNode.a0;
-      //Si c'est le premier segment
-      if (i == 0) {
-        //Si on est à la racine de l'arbre
-        if (rootNode.parentNode == undefined) {
-          let D = -allPs[i][1].dot(allPs[i][0]);
-          let v1;
 
+      if (i == 0) { // first segment
+        if (rootNode.parentNode == undefined) { // root of tree
+          let v1;
+          let D = -segments[i][1].dot(segments[i][0]);
+          
           //Normale ne peut pas être (0,0,0)
-          if (allPs[i][1].z != 0) {
-            //x=2; y=1
-            let z =
-              -(allPs[i][1].x * 2 + allPs[i][1].y * 1 + D) / allPs[i][1].z;
+          if (segments[i][1].z !== 0) { // x = 2; y = 1
+            let z = -(segments[i][1].x * 2 + segments[i][1].y * 1 + D) / segments[i][1].z;
             v1 = new THREE.Vector3(2.0, 1.0, z).normalize();
-          } else if (allPs[i][1].y != 0) {
-            //x=2; z=1
-            let y =
-              -(allPs[i][1].x * 2 + allPs[i][1].z * 1 + D) / allPs[i][1].y;
+          
+          } else if (segments[i][1].y !== 0) { //x = 2; z = 1
+          
+            let y = -(segments[i][1].x * 2 + segments[i][1].z * 1 + D) / segments[i][1].y;
             v1 = new THREE.Vector3(2.0, y, 1.0).normalize();
-          } else {
-            //y=2; z=1
-            let x =
-              -(allPs[i][1].y * 2 + allPs[i][1].z * 1 + D) / allPs[i][1].x;
+
+          } else { //y=2; z=1
+            
+            let x = -(segments[i][1].y * 2 + segments[i][1].z * 1 + D) / segments[i][1].x;
             v1 = new THREE.Vector3(x, 2.0, 1.0).normalize();
           }
 
           let v2 = new THREE.Vector3()
-            .crossVectors(allPs[i][1], v1)
+            .crossVectors(segments[i][1], v1)
             .normalize();
 
-          rootNode.sections[i] = new Array(radialDivisions);
+          rootNode.sections[i    ] = new Array(radialDivisions);
           rootNode.sections[i + 1] = new Array(radialDivisions);
 
           //Faire les segments circulaires (nbr de points = radialDivisions)
 
           for (let j = 0; j < radialDivisions; j++) {
-            rootNode.sections[i][j] = allPs[i][0].clone();
+            rootNode.sections[i][j] = segments[i][0].clone();
             rootNode.sections[i][j].addScaledVector(
               v1,
               rootNode.a0 * Math.cos((-j * 2 * Math.PI) / radialDivisions)
@@ -179,38 +146,35 @@ TP3.Geometry = {
           }
         } else {
           //Sinon on prend le dernier segment du parent
-          rootNode.sections[i] =
-            rootNode.parentNode.sections[lengthDivisions - 1];
+          rootNode.sections[i] = rootNode.parentNode.sections[lengthDivisions - 1];
         }
+
       } else {
         rootNode.sections[i] = new Array(radialDivisions);
 
         //Trouver la matrice de rotation
-        let axisAngle = this.findRotation(allPs[i - 1][1], allPs[i][1]);
+        let axisAngle = this.findRotation(segments[i - 1][1], segments[i][1]);
         let rotMat = new THREE.Matrix4().makeRotationFromQuaternion(
           new THREE.Quaternion().setFromAxisAngle(axisAngle[0], axisAngle[1])
         );
 
         //Faire les segments circulaires (nbr de segments = radialDivisions)
-        let currentRadiusValue =
-          rootNode.a0 * (1 + (i / (lengthDivisions - 1)) * (decay - 1));
+        let currentRadiusValue = rootNode.a0 * (1 + (i / (lengthDivisions - 1)) * (decay - 1));
+
         for (let j = 0; j < radialDivisions; j++) {
           rootNode.sections[i][j] = rootNode.sections[i - 1][j].clone();
-          //Translation du segment d'avant vers le présent (pour chaque point)
-          rootNode.sections[i][j].add(
-            new THREE.Vector3().subVectors(allPs[i][0], allPs[i - 1][0])
-          );
+          rootNode.sections[i][j].add(new THREE.Vector3().subVectors(segments[i][0], segments[i - 1][0])); // Translation du segment d'avant vers le présent (pour chaque point)
 
           //Vecteur du rayon
           let currentRadius = new THREE.Vector3()
-            .subVectors(rootNode.sections[i][j], allPs[i][0])
+            .subVectors(rootNode.sections[i][j], segments[i][0])
             .normalize();
 
           //Rotation du vecteur du rayon dans la bonne direction
           currentRadius.applyMatrix4(rotMat);
 
           //Vrai point du segment (centre + rayonVect*R)
-          rootNode.sections[i][j] = allPs[i][0].clone();
+          rootNode.sections[i][j] = segments[i][0].clone();
           rootNode.sections[i][j].addScaledVector(
             currentRadius,
             currentRadiusValue
@@ -230,25 +194,34 @@ TP3.Geometry = {
       }
     }
 
-    //Retourne rootNode après le traitement des enfants s'il y a lieu
     return rootNode;
   },
 
   hermite: function (h0, h1, v0, v1, t) {
-    //TODO
-    var p = new THREE.Vector3().addScaledVector(h0,2 * Math.pow(t, 3) - 3 * Math.pow(t, 2) + 1);
-    p.addScaledVector(h1, -2 * Math.pow(t, 3) + 3 * Math.pow(t, 2));
-    p.addScaledVector(v0, Math.pow(t, 3) - 2 * Math.pow(t, 2) + t);
-    p.addScaledVector(v1, Math.pow(t, 3) - Math.pow(t, 2));
+    
+    // hermite functions
+    const x1 =  2 * t**3 - 3 * t**2 + 1;
+    const x2 = -2 * t**3 + 3 * t**2;
+    const x3 =      t**3 - 2 * t**2 + t;
+    const x4 =      t**3 -     t**2;
 
-    var dp = new THREE.Vector3().addScaledVector(
-      h0,
-      6 * Math.pow(t, 2) - 6 * t
-    );
-    dp.addScaledVector(h1, -6 * Math.pow(t, 2) + 6 * t);
-    dp.addScaledVector(v0, 3 * Math.pow(t, 2) - 4 * t + 1);
-    dp.addScaledVector(v1, 3 * Math.pow(t, 2) - 2 * t);
+    // derivatives of hermite functions
+    const dx1 =  6 * t**2 - 6 * t;
+    const dx2 = -6 * t**2 + 6 * t;
+    const dx3 =  3 * t**2 - 4 * t + 1;
+    const dx4 =  3 * t**2 - 2 * t;
 
+  
+    const p = h0.multiplyScalar(x1)
+         .add(h1.multiplyScalar(x2))
+         .add(v0.multiplyScalar(x3))
+         .add(v1.multiplyScalar(x4));
+
+    const dp = h0.multiplyScalar(dx1)
+          .add(h1.multiplyScalar(dx2))
+          .add(v0.multiplyScalar(dx3))
+          .add(v1.multiplyScalar(dx4));
+    
     return [p, dp];
   },
 
