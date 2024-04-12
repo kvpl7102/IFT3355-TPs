@@ -44,7 +44,6 @@ class Apple {
   }
 }
 
-
 class Leaf {
   constructor(branch, alpha) {
     this.branch       = branch
@@ -58,7 +57,7 @@ class Leaf {
 
     let leafableWidth = this.alpha
 
-    if (this.branch.childNode === undefined) {
+    if (!this.branch.hasChildren()) {childNode === undefined
       leafableWidth += this.alpha
     }
 
@@ -106,7 +105,6 @@ class Tree {
 
     // merge apples
     if (appleGeometries.length > 0) {
-      console.log(appleGeometries)
       this.applesGeometry = new THREE.SphereBufferGeometry();
       this.applesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(appleGeometries);
       this.applesGeometry = new THREE.Mesh(this.applesGeometry, new THREE.MeshPhongMaterial({ color: 0x5f0b0b }));
@@ -152,7 +150,7 @@ TP3.Render = {
     }
   
 
-    if (rootNode.childNode !== undefined) { // recurse children
+    if (rootNode.hasChildren()) { // recurse children
       for (var i = 0; i < rootNode.childNode.length; i++) {
         let geometries = this.drawTreeRough(
           rootNode.childNode[i],
@@ -170,7 +168,7 @@ TP3.Render = {
         geometries[2].forEach((leaf  ) => leaves  .push(leaf  ))
       }
     }
-    if (rootNode.parentNode === null) {
+    if (rootNode.isRootOfTree()) {
       let tree = new Tree(branches, apples, leaves)
 
       if (tree.branchesGeometry !== undefined) scene.add(tree.branchesGeometry)
@@ -192,282 +190,43 @@ TP3.Render = {
     matrix = new THREE.Matrix4()
   ) {
 
-    // let branches = []
-    // let apples   = []
-    // let leaves   = []
+    let branches = []
+    let apples   = []
+    let leaves   = []
 
-    // // Liste des segments
-    // let segments   = rootNode.sections
+    // Liste des sections
+    let sections   = rootNode.sections
+    let vertexGeometries = []
+    let indexes  = []; // Correspondance entre les points et leur indice
+    
+    let faces    = []; // Faces
 
-    // const indexes  = []; // Correspondance entre les points et leur indice
-    // const vertices = []; // Sommets
-    // const faces    = []; // Faces
-
-    // const meanIndices = [];
-    // const topListIndices = [];
-    // const bottomListIndices = [];
-
-    // let currentIdx = 0;
-
-    // for (const section of rootNode.sections) {
-    //   console.log(section)
-    // }
-
-    // for (let i = 0; i < pointsList.length; i++) {
-    //   const subIndexList = [];
-
-    //   if (i == 0 || i == pointsList.length - 1) {
-    //     for (let j = 0; j < pointsList[i].length; j++) {
-    //       customVertices.push(pointsList[i][j].x, pointsList[i][j].y, pointsList[i][j].z);
-    //       if (i == 0) { topListIndices   .push(currentIdx); }
-    //       else        { bottomListIndices.push(currentIdx); }
-
-    //       currentIdx ++;
-    //     }
-    //     const meanPoint = TP3.Geometry.meanPoint(pointsList[i]);
-    //     customVertices.push(meanPoint.x, meanPoint.y, meanPoint.z);
-    //     meanIndices.push(currentIdx);
-    //     currentIdx++;
-    //   }
-
-    //   for (let j = 0; j < pointsList[i].length; j++) {
-    //     customVertices.push(pointsList[i][j].x, pointsList[i][j].y, pointsList[i][j].z);
-    //     subIndexList.push(currentIdx);
-    //     currentIdx++;
-    //   }
-    //   indexList.push(subIndexList);
-    // }
-
-    // for (let i = 1; i < indexList.length; i++) {
-    //   for (let j = 0; j < indexList[i].length; j++) {
-    //     const topLeft     = indexList[i    ][j                            ];
-    //     const topRight    = indexList[i    ][(j + 1) % indexList[i].length];
-    //     const bottomLeft  = indexList[i - 1][j                            ];
-    //     const bottomRight = indexList[i - 1][(j + 1) % indexList[i].length];
-
-    //     customIdx.push(topLeft, bottomRight, bottomLeft); // Face 0
-    //     customIdx.push(topLeft, topRight   , bottomRight); // Face 1
-    //   }
-    // }
-
-    // for (let j = 0; j < indexList[0].length; j++) {
-    //   const topLeft  = topListIndices[j];
-    //   const topRight = topListIndices[(j + 1) % indexList[0].length];
-    //   const bottom   = meanIndices[0];
-
-    //   customIdx.push(topLeft, topRight, bottom); // Face 0
-    // }
-
-    // for (let j = 0; j < indexList[indexList.length - 1].length; j++) {
-    //   const topLeft  = bottomListIndices[j];
-    //   const topRight = bottomListIndices[(j + 1) % bottomListIndices.length];
-    //   const bottom   = meanIndices[1];
-
-    //   customIdx.push(topLeft, bottom, topRight); //Face 0
-    // }
-
-    // //Liste des sommets en float32
-    // const floatCustomVertices = new Float32Array(customVertices);
-
-    // //Créer la branche
-    // const branchBuffer = new THREE.BufferGeometry();
-
-    // branchBuffer.setAttribute(
-    //   "position",
-    //   new THREE.BufferAttribute(floatCustomVertices, 3)
-    // );
-    // branchBuffer.setIndex(customIdx); //Set faces
-    // branchBuffer.computeVertexNormals();
-
-    // // Même matériel que dans drawTreeRough
-    // // new THREE.MeshLambertMaterial({color: 0x8b5a2b})
-    // branchGeometries.push(branchBuffer);
-
-    // if (rootNode.a0 < alpha * leavesCutoff) {
-    //   //Si la branche n'est pas terminale
-    //   if (rootNode.childNode != undefined) {
-    //     for (let i = 0; i < leavesDensity; i++) {
-    //       var leaf = new THREE.PlaneBufferGeometry(alpha, alpha);
-
-    //       //Random sur la ligne
-    //       var h = Math.random() * alpha;
-    //       //Rotation random
-    //       var theta = Math.random() * Math.PI * 2;
-    //       //Random entre la ligne et la circomférence
-    //       var r = (Math.random() * alpha) / 2;
-
-    //       //Transformer en cartésien
-    //       var point = new THREE.Vector3(
-    //         r * Math.cos(theta),
-    //         r * Math.sin(theta),
-    //         h
-    //       );
-
-    //       //Appliquer le random sur notre référentiel (p1)
-    //       var finalPoint = point.add(rootNode.p1);
-
-    //       //Appliquer une rotation aléatoirement
-    //       leaf.rotateX(Math.random() * Math.PI * 2);
-    //       leaf.rotateY(Math.random() * Math.PI * 2);
-    //       leaf.rotateZ(Math.random() * Math.PI * 2);
-
-    //       leaf.translate(finalPoint.x, finalPoint.y, finalPoint.z);
-
-    //       leafGeometries.push(leaf);
-    //     }
-    //   }
-    //   //Si la branche est terminale
-    //   else {
-    //     for (let i = 0; i < leavesDensity; i++) {
-    //       var leaf = new THREE.Mesh(
-    //         new THREE.PlaneBufferGeometry(alpha, alpha),
-    //         new THREE.MeshPhongMaterial({ color: 0x3a5f0b })
-    //       );
-
-    //       // Random sur la ligne
-    //       var h = Math.random() * (alpha * 2);
-    //       // Rotation random
-    //       var theta = Math.random() * Math.PI * 2;
-    //       // Random entre la ligne et la circomférence
-    //       var r = (Math.random() * alpha) / 2;
-
-    //       // Transformer en cartésien
-    //       var point = new THREE.Vector3(
-    //         r * Math.cos(theta),
-    //         r * Math.sin(theta),
-    //         h
-    //       );
-
-    //       // Appliquer le random sur notre référentiel (p1)
-
-    //       var finalPoint = point.add(rootNode.p1);
-
-    //       // Appliquer une rotation aléatoirement
-    //       leaf.rotateX(Math.random() * Math.PI * 2);
-    //       leaf.rotateY(Math.random() * Math.PI * 2);
-    //       leaf.rotateZ(Math.random() * Math.PI * 2);
-
-    //       leaf.translate(finalPoint.x, finalPoint.y, finalPoint.z);
-
-    //       leafGeometries.push(leaf);
-    //     }
-    //   }
-    // }
-
-    // // Créer les pommes
-    // if (Math.random() < applesProbability) {
-    //   var apple = new THREE.Mesh(
-    //     new THREE.SphereBufferGeometry(0.1, 8, 8),
-    //     new THREE.MeshPhongMaterial({ color: 0x5f0b0b })
-    //   );
-
-    //   // Random sur la ligne
-    //   var h = Math.random() * (alpha * 2);
-
-    //   // Rotation random
-    //   var theta = Math.random() * Math.PI * 2;
-
-    //   // Random entre la ligne et la circomférence
-    //   var r = (Math.random() * alpha) / 2;
-
-    //   // Transformer en cartésien
-    //   var point = new THREE.Vector3(
-    //     r * Math.cos(theta),
-    //     r * Math.sin(theta),
-    //     h
-    //   );
-
-    //   //Appliquer le random sur notre référentiel (p1)
-    //   var finalPoint = point.add(rootNode.p1);
-
-    //   apple.translate(finalPoint.x, finalPoint.y, finalPoint.z);
-
-    //   appleGeometries.push(apple);
-    // }
-
-    // //Traverser toutes les branches
-    // if (rootNode.childNode != undefined) {
-    //   for (let i = 0; i < rootNode.childNode.length; i++) {
-    //     this.drawTreeHermite(
-    //       rootNode.childNode[i],
-    //       scene,
-    //       alpha,
-    //       leavesCutoff,
-    //       leavesDensity,
-    //       applesProbability,
-    //       matrix
-    //     );
-    //   }
-    // }
-
-    // if (rootNode.parentNode == undefined) {
-    //   // Merge pour les branches
-    //   let treeGeometry = new THREE.CylinderBufferGeometry();
-    //   treeGeometry =
-    //     THREE.BufferGeometryUtils.mergeBufferGeometries(branchGeometries);
-    //   const tree = new THREE.Mesh(
-    //     treeGeometry,
-    //     new THREE.MeshLambertMaterial({ color: 0x8b5a2b })
-    //   );
-    //   scene.add(tree);
-
-    //   // Pour les feuilles
-    //   let leavesGeometry = new THREE.PlaneBufferGeometry();
-    //   leavesGeometry =
-    //     THREE.BufferGeometryUtils.mergeBufferGeometries(leafGeometries);
-    //   const leaves = new THREE.Mesh(
-    //     leavesGeometry,
-    //     new THREE.MeshPhongMaterial({ color: 0x3a5f0b })
-    //   );
-    //   scene.add(leaves);
-
-    //   // Pour les pommes
-    //   let applesGeometry = new THREE.SphereBufferGeometry();
-    //   applesGeometry =
-    //     THREE.BufferGeometryUtils.mergeBufferGeometries(appleGeometries);
-    //   const apples = new THREE.Mesh(
-    //     applesGeometry,
-    //     new THREE.MeshPhongMaterial({ color: 0x5f0b0b })
-    //   );
-    //   scene.add(apples);
-    // }
-
-    branchGeometries = new Array();
-    leafGeometries = new Array();
-    appleGeometries = new Array();
-
-    // Liste des segments
-    let pointsList = rootNode.sections;
-
-    const indexList = []; // Correspondance entre les points et leur indice
-    const customVertices = []; // Sommets
-    const customIdx = []; // Faces
-
-    const meanIndices = [];
-    const topListIndices = [];
-    const bottomListIndices = [];
+    let meanIndices = [];
+    let topListIndices = [];
+    let bottomListIndices = [];
 
     let currentIdx = 0;
 
     for (const section of rootNode.sections) {
-      console.log(section)
+      let vertices = []
+      section.forEach((vertex) => vertices.push(vertex.x, vertex.y, vertex.z))
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(vertices), 3)); 
+      vertexGeometries.push(geometry)
+      
     }
+
     for (let i = 0; i < pointsList.length; i++) {
       const subIndexList = [];
 
       if (i == 0 || i == pointsList.length - 1) {
         for (let j = 0; j < pointsList[i].length; j++) {
-          customVertices.push(
-            pointsList[i][j].x,
-            pointsList[i][j].y,
-            pointsList[i][j].z
-          );
-          if (i == 0) {
-            topListIndices.push(currentIdx);
-          } else {
-            bottomListIndices.push(currentIdx);
-          }
-          currentIdx++;
+          customVertices.push(pointsList[i][j].x, pointsList[i][j].y, pointsList[i][j].z);
+          if (i == 0) { topListIndices   .push(currentIdx); }
+          else        { bottomListIndices.push(currentIdx); }
+
+          currentIdx ++;
         }
         const meanPoint = TP3.Geometry.meanPoint(pointsList[i]);
         customVertices.push(meanPoint.x, meanPoint.y, meanPoint.z);
@@ -476,11 +235,7 @@ TP3.Render = {
       }
 
       for (let j = 0; j < pointsList[i].length; j++) {
-        customVertices.push(
-          pointsList[i][j].x,
-          pointsList[i][j].y,
-          pointsList[i][j].z
-        );
+        customVertices.push(pointsList[i][j].x, pointsList[i][j].y, pointsList[i][j].z);
         subIndexList.push(currentIdx);
         currentIdx++;
       }
@@ -489,28 +244,28 @@ TP3.Render = {
 
     for (let i = 1; i < indexList.length; i++) {
       for (let j = 0; j < indexList[i].length; j++) {
-        const topLeft = indexList[i][j];
-        const topRight = indexList[i][(j + 1) % indexList[i].length];
-        const bottomLeft = indexList[i - 1][j];
+        const topLeft     = indexList[i    ][j                            ];
+        const topRight    = indexList[i    ][(j + 1) % indexList[i].length];
+        const bottomLeft  = indexList[i - 1][j                            ];
         const bottomRight = indexList[i - 1][(j + 1) % indexList[i].length];
 
         customIdx.push(topLeft, bottomRight, bottomLeft); // Face 0
-        customIdx.push(topLeft, topRight, bottomRight); // Face 1
+        customIdx.push(topLeft, topRight   , bottomRight); // Face 1
       }
     }
 
     for (let j = 0; j < indexList[0].length; j++) {
-      const topLeft = topListIndices[j];
+      const topLeft  = topListIndices[j];
       const topRight = topListIndices[(j + 1) % indexList[0].length];
-      const bottom = meanIndices[0];
+      const bottom   = meanIndices[0];
 
       customIdx.push(topLeft, topRight, bottom); // Face 0
     }
 
     for (let j = 0; j < indexList[indexList.length - 1].length; j++) {
-      const topLeft = bottomListIndices[j];
+      const topLeft  = bottomListIndices[j];
       const topRight = bottomListIndices[(j + 1) % bottomListIndices.length];
-      const bottom = meanIndices[1];
+      const bottom   = meanIndices[1];
 
       customIdx.push(topLeft, bottom, topRight); //Face 0
     }
@@ -680,6 +435,252 @@ TP3.Render = {
       );
       scene.add(apples);
     }
+
+    // branchGeometries = new Array();
+    // leafGeometries = new Array();
+    // appleGeometries = new Array();
+
+    // // Liste des segments
+    // let pointsList = rootNode.sections;
+
+    // const indexList = []; // Correspondance entre les points et leur indice
+    // const customVertices = []; // Sommets
+    // const customIdx = []; // Faces
+
+    // const meanIndices = [];
+    // const topListIndices = [];
+    // const bottomListIndices = [];
+
+    // let currentIdx = 0;
+
+    // for (let i = 0; i < pointsList.length; i++) {
+    //   const subIndexList = [];
+
+    //   if (i == 0 || i == pointsList.length - 1) {
+    //     for (let j = 0; j < pointsList[i].length; j++) {
+    //       customVertices.push(
+    //         pointsList[i][j].x,
+    //         pointsList[i][j].y,
+    //         pointsList[i][j].z
+    //       );
+    //       if (i == 0) {
+    //         topListIndices.push(currentIdx);
+    //       } else {
+    //         bottomListIndices.push(currentIdx);
+    //       }
+    //       currentIdx++;
+    //     }
+    //     const meanPoint = TP3.Geometry.meanPoint(pointsList[i]);
+    //     customVertices.push(meanPoint.x, meanPoint.y, meanPoint.z);
+    //     meanIndices.push(currentIdx);
+    //     currentIdx++;
+    //   }
+
+    //   for (let j = 0; j < pointsList[i].length; j++) {
+    //     customVertices.push(
+    //       pointsList[i][j].x,
+    //       pointsList[i][j].y,
+    //       pointsList[i][j].z
+    //     );
+    //     subIndexList.push(currentIdx);
+    //     currentIdx++;
+    //   }
+    //   indexList.push(subIndexList);
+    // }
+
+    // for (let i = 1; i < indexList.length; i++) {
+    //   for (let j = 0; j < indexList[i].length; j++) {
+    //     const topLeft = indexList[i][j];
+    //     const topRight = indexList[i][(j + 1) % indexList[i].length];
+    //     const bottomLeft = indexList[i - 1][j];
+    //     const bottomRight = indexList[i - 1][(j + 1) % indexList[i].length];
+
+    //     customIdx.push(topLeft, bottomRight, bottomLeft); // Face 0
+    //     customIdx.push(topLeft, topRight, bottomRight); // Face 1
+    //   }
+    // }
+
+    // for (let j = 0; j < indexList[0].length; j++) {
+    //   const topLeft = topListIndices[j];
+    //   const topRight = topListIndices[(j + 1) % indexList[0].length];
+    //   const bottom = meanIndices[0];
+
+    //   customIdx.push(topLeft, topRight, bottom); // Face 0
+    // }
+
+    // for (let j = 0; j < indexList[indexList.length - 1].length; j++) {
+    //   const topLeft = bottomListIndices[j];
+    //   const topRight = bottomListIndices[(j + 1) % bottomListIndices.length];
+    //   const bottom = meanIndices[1];
+
+    //   customIdx.push(topLeft, bottom, topRight); //Face 0
+    // }
+
+    // //Liste des sommets en float32
+    // const floatCustomVertices = new Float32Array(customVertices);
+
+    // //Créer la branche
+    // const branchBuffer = new THREE.BufferGeometry();
+
+    // branchBuffer.setAttribute(
+    //   "position",
+    //   new THREE.BufferAttribute(floatCustomVertices, 3)
+    // );
+    // branchBuffer.setIndex(customIdx); //Set faces
+    // branchBuffer.computeVertexNormals();
+
+    // // Même matériel que dans drawTreeRough
+    // // new THREE.MeshLambertMaterial({color: 0x8b5a2b})
+    // branchGeometries.push(branchBuffer);
+
+    // if (rootNode.a0 < alpha * leavesCutoff) {
+    //   //Si la branche n'est pas terminale
+    //   if (rootNode.childNode != undefined) {
+    //     for (let i = 0; i < leavesDensity; i++) {
+    //       var leaf = new THREE.PlaneBufferGeometry(alpha, alpha);
+
+    //       //Random sur la ligne
+    //       var h = Math.random() * alpha;
+    //       //Rotation random
+    //       var theta = Math.random() * Math.PI * 2;
+    //       //Random entre la ligne et la circomférence
+    //       var r = (Math.random() * alpha) / 2;
+
+    //       //Transformer en cartésien
+    //       var point = new THREE.Vector3(
+    //         r * Math.cos(theta),
+    //         r * Math.sin(theta),
+    //         h
+    //       );
+
+    //       //Appliquer le random sur notre référentiel (p1)
+    //       var finalPoint = point.add(rootNode.p1);
+
+    //       //Appliquer une rotation aléatoirement
+    //       leaf.rotateX(Math.random() * Math.PI * 2);
+    //       leaf.rotateY(Math.random() * Math.PI * 2);
+    //       leaf.rotateZ(Math.random() * Math.PI * 2);
+
+    //       leaf.translate(finalPoint.x, finalPoint.y, finalPoint.z);
+
+    //       leafGeometries.push(leaf);
+    //     }
+    //   }
+    //   //Si la branche est terminale
+    //   else {
+    //     for (let i = 0; i < leavesDensity; i++) {
+    //       var leaf = new THREE.Mesh(
+    //         new THREE.PlaneBufferGeometry(alpha, alpha),
+    //         new THREE.MeshPhongMaterial({ color: 0x3a5f0b })
+    //       );
+
+    //       // Random sur la ligne
+    //       var h = Math.random() * (alpha * 2);
+    //       // Rotation random
+    //       var theta = Math.random() * Math.PI * 2;
+    //       // Random entre la ligne et la circomférence
+    //       var r = (Math.random() * alpha) / 2;
+
+    //       // Transformer en cartésien
+    //       var point = new THREE.Vector3(
+    //         r * Math.cos(theta),
+    //         r * Math.sin(theta),
+    //         h
+    //       );
+
+    //       // Appliquer le random sur notre référentiel (p1)
+
+    //       var finalPoint = point.add(rootNode.p1);
+
+    //       // Appliquer une rotation aléatoirement
+    //       leaf.rotateX(Math.random() * Math.PI * 2);
+    //       leaf.rotateY(Math.random() * Math.PI * 2);
+    //       leaf.rotateZ(Math.random() * Math.PI * 2);
+
+    //       leaf.translate(finalPoint.x, finalPoint.y, finalPoint.z);
+
+    //       leafGeometries.push(leaf);
+    //     }
+    //   }
+    // }
+
+    // // Créer les pommes
+    // if (Math.random() < applesProbability) {
+    //   var apple = new THREE.Mesh(
+    //     new THREE.SphereBufferGeometry(0.1, 8, 8),
+    //     new THREE.MeshPhongMaterial({ color: 0x5f0b0b })
+    //   );
+
+    //   // Random sur la ligne
+    //   var h = Math.random() * (alpha * 2);
+
+    //   // Rotation random
+    //   var theta = Math.random() * Math.PI * 2;
+
+    //   // Random entre la ligne et la circomférence
+    //   var r = (Math.random() * alpha) / 2;
+
+    //   // Transformer en cartésien
+    //   var point = new THREE.Vector3(
+    //     r * Math.cos(theta),
+    //     r * Math.sin(theta),
+    //     h
+    //   );
+
+    //   //Appliquer le random sur notre référentiel (p1)
+    //   var finalPoint = point.add(rootNode.p1);
+
+    //   apple.translate(finalPoint.x, finalPoint.y, finalPoint.z);
+
+    //   appleGeometries.push(apple);
+    // }
+
+    // //Traverser toutes les branches
+    // if (rootNode.childNode != undefined) {
+    //   for (let i = 0; i < rootNode.childNode.length; i++) {
+    //     this.drawTreeHermite(
+    //       rootNode.childNode[i],
+    //       scene,
+    //       alpha,
+    //       leavesCutoff,
+    //       leavesDensity,
+    //       applesProbability,
+    //       matrix
+    //     );
+    //   }
+    // }
+
+    // if (rootNode.parentNode == undefined) {
+    //   // Merge pour les branches
+    //   let treeGeometry = new THREE.CylinderBufferGeometry();
+    //   treeGeometry =
+    //     THREE.BufferGeometryUtils.mergeBufferGeometries(branchGeometries);
+    //   const tree = new THREE.Mesh(
+    //     treeGeometry,
+    //     new THREE.MeshLambertMaterial({ color: 0x8b5a2b })
+    //   );
+    //   scene.add(tree);
+
+    //   // Pour les feuilles
+    //   let leavesGeometry = new THREE.PlaneBufferGeometry();
+    //   leavesGeometry =
+    //     THREE.BufferGeometryUtils.mergeBufferGeometries(leafGeometries);
+    //   const leaves = new THREE.Mesh(
+    //     leavesGeometry,
+    //     new THREE.MeshPhongMaterial({ color: 0x3a5f0b })
+    //   );
+    //   scene.add(leaves);
+
+    //   // Pour les pommes
+    //   let applesGeometry = new THREE.SphereBufferGeometry();
+    //   applesGeometry =
+    //     THREE.BufferGeometryUtils.mergeBufferGeometries(appleGeometries);
+    //   const apples = new THREE.Mesh(
+    //     applesGeometry,
+    //     new THREE.MeshPhongMaterial({ color: 0x5f0b0b })
+    //   );
+    //   scene.add(apples);
+    // }
   },
 
   updateTreeHermite: function (
