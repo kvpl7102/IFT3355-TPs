@@ -59,11 +59,11 @@ TP3.Geometry = {
 
   generateSegmentsHermite: function (rootNode, lengthDivisions = 4, radialDivisions = 8) {
     rootNode.sections = new Array(lengthDivisions);
-    let segments      = new Array(lengthDivisions); // (point, vector) of segments
+    let segments      = new Array(lengthDivisions); // (point, vector) of hermite segments
 
     let lastVector  = new THREE.Vector3().subVectors(rootNode.p1, rootNode.p0)
     let firstVector = rootNode.parentNode === null 
-        ? new THREE.Vector3(0, 1, 0) 
+        ? new THREE.Vector3(0, 1, 0)
         : new THREE.Vector3().subVectors(rootNode.parentNode.p1, rootNode.parentNode.p0)
 
     segments[0                  ] = [rootNode.p0, firstVector]; // start p1, v1
