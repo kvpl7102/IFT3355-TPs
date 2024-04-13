@@ -34,6 +34,7 @@ TP3.Physics = {
   },
 
   applyForces: function (node, dt, time) {
+  
     var u = Math.sin(1 * time) * 4;
     u += Math.sin(2.5 * time) * 2;
     u += Math.sin(5 * time) * 0.4;
@@ -54,7 +55,6 @@ TP3.Physics = {
     node.vel.add(new THREE.Vector3(0, -node.mass, 0).multiplyScalar(dt));
 
     // TODO: Projection du mouvement, force de restitution et amortissement de la velocite
-
     var initDirection = new THREE.Vector3()
       .subVectors(node.p1, node.p0)
       .normalize();
@@ -92,8 +92,8 @@ TP3.Physics = {
     // Matrice de rotation mais dans le sens contraire de l'angle au carré
     rotMatrix = new THREE.Matrix4().makeRotationFromQuaternion(
       new THREE.Quaternion().setFromAxisAngle(
-        axisAngle[0],
-        -Math.pow(axisAngle[1], 2)
+      axisAngle[0],
+      -Math.pow(axisAngle[1], 2)
       )
     );
 
@@ -110,9 +110,9 @@ TP3.Physics = {
     node.vel.multiplyScalar(0.7);
 
     // Appliquer notre velocite à nos points
-    newP1 = node.p1.clone().addScaledVector(node.vel, dt); //p1(t+dt) = p1(t) + v*dt
+    newP1 = node.p1.clone().addScaledVector(node.vel, dt); 
 
-    norm2 = new THREE.Vector3().subVectors(newP1, node.p0).normalize(); //On peut réutiliser l'ancien norm1
+    norm2 = new THREE.Vector3().subVectors(newP1, node.p0).normalize(); 
 
     axisAngle = TP3.Geometry.findRotation(norm1, norm2);
     rotMatrix = new THREE.Matrix4().makeRotationFromQuaternion(
@@ -123,8 +123,8 @@ TP3.Physics = {
     node.p1 = node.p0
       .clone()
       .addScaledVector(
-        norm1,
-        new THREE.Vector3().subVectors(node.p1, node.p0).length()
+      norm1,
+      new THREE.Vector3().subVectors(node.p1, node.p0).length()
       );
 
     // Nouvelle matrice de rotation entre direction initiale et direction finale
@@ -139,18 +139,19 @@ TP3.Physics = {
     // Projecte la transformation sur les enfants (if possible)
     if (node.childNode != undefined) {
       for (let i = 0; i < node.childNode.length; i++) {
-        let childDir = new THREE.Vector3().subVectors(
-          node.childNode[i].p1,
-          node.childNode[i].p0
-        );
-        let childLength = childDir.length();
-        childDir.normalize();
+      let childDir = new THREE.Vector3().subVectors(
+        node.childNode[i].p1,
+        node.childNode[i].p0
+      );
+      let childLength = childDir.length();
+      childDir.normalize();
 
-        node.childNode[i].p0 = node.p1;
-        childDir.applyMatrix4(rotMatrix);
-        node.childNode[i].p1 = node.p1
-          .clone()
-          .addScaledVector(childDir, childLength);
+      node.childNode[i].p0 = node.p1;
+      childDir.applyMatrix4(rotMatrix);
+      node.childNode[i].p1 = node.p1
+        .clone()
+        .addScaledVector(childDir, childLength);
+
       }
     }
 
