@@ -1,17 +1,65 @@
-class Branch {
-  constructor(node, radialDivisions) {
-    this.node            = node
-    this.radialDivisions = radialDivisions
 
+class Branch {
+  constructor(node) {
+    this.node   = node
+    this.length = this.node.p0.distanceTo(this.node.p1)
     this.init();
     
   }
 
   init() {
-    this.length          = this.node.p0.distanceTo(this.node.p1)
-    this.geometry        = new THREE.CylinderBufferGeometry(this.node.a1, this.node.a0, this.length, this.radialDivisions);
-    this.axisAngle       = TP3.Geometry.findRotation(new THREE.Vector3(0, 1, 0), new THREE.Vector3().subVectors(this.node.p1, this.node.p0));
-    this.rotationMatrix  = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(this.axisAngle[0], this.axisAngle[1]));
+    this.geometries = []
+    let sections    = this.node.sections;
+
+    for (let i = 0; i < sections.length - 1; i ++) {
+      for (let j = 0; j < sections[i].length; j++) {
+        
+        let p00 = sections[i                        ][j                           ]
+        let p01 = sections[i                        ][(j + 1) % sections[i].length]
+        let p10 = sections[(i + 1) % sections.length][j                           ]
+        let p11 = sections[(i + 1) % sections.length][(j + 1) % sections[i].length]
+
+        // triangle 1
+        let vertices = [
+          p00.x, p00.y, p00.z,
+          p10.x, p10.y, p10.z,
+          p01.x, p01.y, p01.z,
+        ]
+        
+        let f32vertices = new Float32Array(vertices);
+        let geometry1   = new THREE.BufferGeometry();
+        geometry1.setAttribute("position", new THREE.BufferAttribute(f32vertices, 3));
+        geometry1.setIndex([1, 2, 0]);
+        geometry1.computeVertexNormals();
+
+        // triangle 2
+        vertices = [
+          p11.x, p11.y, p11.z,
+          p01.x, p01.y, p01.z,
+          p10.x, p10.y, p10.z,
+        ]
+        
+        f32vertices = new Float32Array(vertices);
+        let geometry2   = new THREE.BufferGeometry();
+        geometry2.setAttribute("position", new THREE.BufferAttribute(f32vertices, 3));
+        geometry2.setIndex([1, 2, 0]);
+        geometry2.computeVertexNormals();
+        
+        this.geometries.push(geometry1, geometry2)
+      }
+    }
+  }
+}
+
+class RoughBranch extends Branch {
+  constructor(node, radialDivisions) {
+    super(node);
+    this.radialDivisions = radialDivisions;
+  }
+  init() {
+    this.geometry       = new THREE.CylinderBufferGeometry(this.node.a1, this.node.a0, this.length, this.radialDivisions);
+    this.axisAngle      = TP3.Geometry.findRotation(new THREE.Vector3(0, 1, 0), new THREE.Vector3().subVectors(this.node.p1, this.node.p0));
+    this.rotationMatrix = new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromAxisAngle(this.axisAngle[0], this.axisAngle[1]));
 
     this.geometry.applyMatrix4(this.rotationMatrix);
     this.geometry.translate( // move to center
@@ -31,7 +79,7 @@ class Apple {
   }
 
   init() {
-    this.geometry = new THREE.SphereBufferGeometry(0.1, 8, 8);
+    this.geometry = this.defaultGeometry()
 
     const x = (Math.random() - 0.5) * this.alpha
     const y = (Math.random() - 0.5) * this.alpha
@@ -40,6 +88,17 @@ class Apple {
     const position = this.branch.node.p1.add(new THREE.Vector3(x, y, z));
 
     this.geometry.translate(position.x, position.y, position.z);
+  }
+
+  defaultGeometry() {
+    return new THREE.SphereBufferGeometry(0.1, 8, 8);
+  }
+}
+
+class RoughApple extends Apple {
+
+  defaultGeometry() {
+    return new THREE.BoxBufferGeometry(this.alpha/2, this.alpha/2, this.alpha/2);
   }
 }
 
@@ -52,12 +111,12 @@ class Leaf {
   }
 
   init() {
-    this.geometry = new THREE.PlaneBufferGeometry(this.alpha, this.alpha)
+    this.geometry = this.defaultGeometry();
 
-    let leafableWidth = this.branch.length
+    let leafableWidth = this.branch.length;
 
     if (!this.branch.node.hasChildren()) {
-      leafableWidth += this.alpha
+      leafableWidth += this.alpha;
     }
     
 
@@ -65,9 +124,9 @@ class Leaf {
     let theta = Math.random() * Math.PI    * 2; // random translation angle
     let r     = Math.random() * this.alpha / 2; // random distance from branch
 
-    const x = r * Math.cos(theta)
-    const y = r * Math.sin(theta)
-    const z = h
+    const x = r * Math.cos(theta);
+    const y = r * Math.sin(theta);
+    const z = h;
 
     const position = this.branch.node.p1.add(new THREE.Vector3(x, y, z));
 
@@ -77,43 +136,65 @@ class Leaf {
     this.geometry.rotateZ(Math.random() * Math.PI * 2);
     this.geometry.translate(position.x, position.y, position.z);
   }
+  
+  defaultGeometry() {
+    // to do: make trianglular
+    return new THREE.PlaneBufferGeometry(this.alpha, this.alpha);
+  }
+}
+
+class RoughLeaf extends Leaf {
+  defaultGeometry() {
+    return new THREE.PlaneBufferGeometry(this.alpha, this.alpha);
+  }
 }
 
 class Tree {
   constructor(branches, apples, leaves) {
-    this.branches = branches
-    this.apples   = apples
-    this.leaves   = leaves
+    this.branches = branches;
+    this.apples   = apples;
+    this.leaves   = leaves;
 
     this.init()
   }
 
   init() {
+    let branchGeometries = this.branchGeometries();
+    let appleGeometries  = this.appleGeometries();
+    let leafGeometries   = this.leafGeometries();
     
-    let branchGeometries = Array.from(this.branches, (branch) => branch.geometry)
-    let appleGeometries  = Array.from(this.apples  , (apple ) => apple .geometry)
-    let leafGeometries   = Array.from(this.leaves  , (leaf  ) => leaf  .geometry)
-    
-    // merge branches
     if (branchGeometries.length > 0) {
-      this.branchesGeometry = new THREE.CylinderBufferGeometry();
       this.branchesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(branchGeometries);
       this.branchesGeometry = new THREE.Mesh(this.branchesGeometry, new THREE.MeshLambertMaterial({ color: 0x8b5a2b }));
     }
 
-    // merge apples
     if (appleGeometries.length > 0) {
-      this.applesGeometry = new THREE.SphereBufferGeometry();
       this.applesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(appleGeometries);
       this.applesGeometry = new THREE.Mesh(this.applesGeometry, new THREE.MeshPhongMaterial({ color: 0x5f0b0b }));
     }
 
-    // merge leaves
     if (leafGeometries.length > 0) {
-      this.leavesGeometry = new THREE.PlaneBufferGeometry();
       this.leavesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(leafGeometries);
       this.leavesGeometry = new THREE.Mesh(this.leavesGeometry, new THREE.MeshPhongMaterial({ color: 0x3a5f0b }));
     }
+  }
+
+  branchGeometries() {
+    return Array.from(this.branches, (branch) => branch.geometries).flat();
+  }
+
+  appleGeometries() {
+    return Array.from(this.apples, (apple ) => apple.geometry);
+  }
+
+  leafGeometries() {
+    return Array.from(this.leaves, (leaf) => leaf.geometry);
+  }
+}
+
+class RoughTree extends Tree {
+  branchGeometries() {
+    return Array.from(this.branches, (branch) => branch.geometry);
   }
 }
 
@@ -134,20 +215,20 @@ TP3.Render = {
     let apples   = []
     let leaves   = []
     
-    let branch = new Branch(rootNode, radialDivisions)
+    let branch = new RoughBranch(rootNode, radialDivisions)
+
     branches.push(branch)
     
     if (branch.node.a0 < alpha * leavesCutoff) {
       if (Math.random() < applesProbability) { // create apple
-        apples.push(new Apple(branch, alpha))
+        apples.push(new RoughApple(branch, alpha))
       }
 
       for (var i = 0; i < leavesDensity; i++) { // create leaves
-        leaves.push(new Leaf(branch, alpha));
+        leaves.push(new RoughLeaf(branch, alpha));
       }
     }
   
-
     if (rootNode.hasChildren()) { // recurse children
       for (var i = 0; i < rootNode.childNode.length; i++) {
         let geometries = this.drawTreeRough(
@@ -167,7 +248,7 @@ TP3.Render = {
       }
     }
     if (rootNode.isRootOfTree()) {
-      let tree = new Tree(branches, apples, leaves)
+      let tree = new RoughTree(branches, apples, leaves)
 
       if (tree.branchesGeometry !== undefined) scene.add(tree.branchesGeometry)
       if (tree.applesGeometry   !== undefined) scene.add(tree.applesGeometry)
@@ -182,39 +263,125 @@ TP3.Render = {
     rootNode,
     scene,
     alpha,
-    leavesCutoff = 0.1,
-    leavesDensity = 10,
+    leavesCutoff      = 0.1,
+    leavesDensity     = 10,
     applesProbability = 0.05,
-    matrix = new THREE.Matrix4()
+    matrix            = new THREE.Matrix4()
   ) {
+    let branches = [];
+    let apples   = [];
+    let leaves   = [];
+    let branch   = new Branch(rootNode);
 
-    let branches = []
-    let apples   = []
-    let leaves   = []
+    branches.push(branch)
 
-    // Liste des sections
-    let sections   = rootNode.sections
-    let vertexGeometries = []
-    let indexes  = []; // Correspondance entre les points et leur indice
+    if (rootNode.a0 < alpha * leavesCutoff) {
+
+      if (Math.random() < applesProbability) { // create apple
+        apples.push(new Apple(branch, alpha))
+      }
+
+      for (var i = 0; i < leavesDensity; i++) { // create leaves
+        leaves.push(new Leaf(branch, alpha));
+      }
+    }
     
-    let faces    = []; // Faces
+    if (rootNode.hasChildren()) {
+      for (let i = 0; i < rootNode.childNode.length; i++) {
+        let geometries = this.drawTreeHermite(
+          rootNode.childNode[i],
+          scene,
+          alpha,
+          leavesCutoff,
+          leavesDensity,
+          applesProbability,
+          matrix,
+        );
 
-    let meanIndices = [];
-    let topListIndices = [];
-    let bottomListIndices = [];
-
-    let currentIdx = 0;
-
-    for (const section of rootNode.sections) {
-      let vertices = []
-      section.forEach((vertex) => vertices.push(vertex.x, vertex.y, vertex.z))
-
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(vertices), 3)); 
-      vertexGeometries.push(geometry)
-      
+        geometries[0].forEach((branch) => branches.push(branch))
+        geometries[1].forEach((apple ) => apples  .push(apple ))
+        geometries[2].forEach((leaf  ) => leaves  .push(leaf  ))
+      }
     }
 
+    if (rootNode.isRootOfTree()) {
+      let tree = new Tree(branches, apples, leaves)
+
+      if (tree.branchesGeometry !== undefined) scene.add(tree.branchesGeometry)
+      if (tree.applesGeometry   !== undefined) scene.add(tree.applesGeometry)
+      if (tree.leavesGeometry   !== undefined) scene.add(tree.leavesGeometry)
+    }
+
+    return [branches, apples, leaves]
+
+    // let branches = []
+    // let apples   = []
+    // let leaves   = []
+
+    // // Liste des sections
+    // let sections   = rootNode.sections
+    // let vertexGeometries = []
+    // let indexes  = []; // Correspondance entre les points et leur indice
+    
+    // let faces    = []; // Faces
+
+    // let meanIndices = [];
+    // let topListIndices = [];
+    // let bottomListIndices = [];
+
+    // let currentIdx = 0;
+
+    
+    // for (var i = 0; i < sections.length - 1; i++) {
+    //   for (var j = 0; j < sections[i].length - 1; j ++) {
+    //     let vertices;
+    //     let vertex1, vertex2, vertex3;
+
+    //     vertex1 = sections[i    ][j    ];
+    //     vertex2 = sections[i    ][j + 1];
+    //     vertex3 = sections[i + 1][j    ];
+
+    //     vertices = [
+    //       vertex1.x, vertex1.y, vertex1.z,
+    //       vertex2.x, vertex2.y, vertex2.z,
+    //       vertex3.x, vertex3.y, vertex3.z,
+    //     ]
+        
+    //     const f32vertices1 = new Float32Array(vertices)
+    //     const geometry1 = new THREE.BufferGeometry();
+    //     geometry1.setAttribute("position", new THREE.BufferAttribute(f32vertices1));
+    //     geometries.push(geometry1);
+        
+    //     vertex2  = sections[i    ][j + 1];
+    //     vertex1  = sections[i + 1][j    ];
+    //     vertex3  = sections[i + 1][j + 1];
+        
+    //     vertices = [
+    //       vertex1.x, vertex1.y, vertex1.z,
+    //       vertex2.x, vertex2.y, vertex2.z,
+    //       vertex3.x, vertex3.y, vertex3.z,
+    //     ]
+        
+    //     const f32vertices2 = new Float32Array(vertices)
+    //     const geometry2 = new THREE.BufferGeometry();
+    //     geometry2.setAttribute("position", new THREE.BufferAttribute(f32vertices2));
+    //     geometries.push(geometry2);
+    //   }
+    // }
+
+    // let verticesGeometry = new THREE.BufferGeometry();
+    // verticesGeometry     = THREE.BufferGeometryUtils.mergeBufferGeometries(geometries);
+    // verticesGeometry     = new THREE.Mesh(verticesGeometry, new THREE.MeshLambertMaterial({ color: 0x8b5a2b }));
+    
+    // scene.add(verticesGeometry)
+      
+    // }
+    // console.log(vertexGeometries)
+    // let verticesGeometry = new THREE.PlaneBufferGeometry();
+    // verticesGeometry = THREE.BufferGeometryUtils.mergeBufferGeometries(vertexGeometries);
+    // verticesGeometry = new THREE.Mesh(verticesGeometry, new THREE.MeshPhongMaterial({ color: 0x3a5f0b }));
+    // scene.add(verticesGeometry)
+    return 
     for (let i = 0; i < pointsList.length; i++) {
       const subIndexList = [];
 
