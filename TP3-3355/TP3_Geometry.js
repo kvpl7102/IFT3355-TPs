@@ -1,73 +1,68 @@
 class Node {
   constructor(parentNode) {
-    this.parentNode = parentNode; //Noeud parent
-    this.childNode = []; //Noeud enfants
+    this.parentNode = parentNode;
+    this.childNode  = []; // why isnt this plural ??
 
-    this.p0 = null; //Position de depart de la branche
-    this.p1 = null; //Position finale de la branche
+    this.p0         = null; // Position de depart de la branche
+    this.p1         = null; // Position finale de la branche
 
-    this.a0 = null; //Rayon de la branche a p0
-    this.a1 = null; //Rayon de la branche a p1
+    this.a0         = null; // Rayon de la branche a p0
+    this.a1         = null; // Rayon de la branche a p1
 
-    this.sections = null; //Liste contenant une liste de points representant les segments circulaires du cylindre generalise
+    this.sections   = null; // Liste contenant une liste de points representant les segments circulaires du cylindre generalise
+  }
+
+  hasChildren() {
+    return this.childNode?.length > 0;
+  }
+
+  isRootOfTree() {
+    return this.parentNode === null;
   }
 }
 
 TP3.Geometry = {
   simplifySkeleton: function (rootNode, rotationThreshold = 0.0001) {
-    //TODO
+    
+    if (!rootNode.hasChildren()) {
+      return rootNode;
+    }
 
-	// If the node has no children, return (end of the loop)
-	if (rootNode.childNode == undefined) {
-	  return rootNode;
-	}
+    if (rootNode.childNode.length !== 1) {
+      rootNode.childNode.forEach((node) => node = this.simplifySkeleton(node, rotationThreshold));
 
-	// The node must have only one child to be removed
-	if (rootNode.childNode.length == 1) {
-	  let rootVect = new THREE.Vector3().subVectors(rootNode.p1, rootNode.p0);
-	  let childVect = new THREE.Vector3().subVectors(
-		rootNode.childNode[0].p1,
-		rootNode.childNode[0].p0
-	  );
-	  let angle = this.findRotation(rootVect, childVect)[1]; // Angle between the node and its child
+      return rootNode;
+    }
 
-	  // If the angle is smaller than the threshold
-	  if (angle < rotationThreshold) {
-		// Update a1, p1, and the children of root
-		rootNode.a1 = rootNode.childNode[0].a1;
-		rootNode.p1 = rootNode.childNode[0].p1;
-		rootNode.childNode = rootNode.childNode[0].childNode;
+    let childNode = rootNode.childNode[0]; // root node has one child
+    let rootVect  = new THREE.Vector3().subVectors(rootNode .p1, rootNode .p0);
+    let childVect = new THREE.Vector3().subVectors(childNode.p1, childNode.p0);
 
-		// Update a0, p0, and parentNode of the new children if they exist
-		if (rootNode.childNode != undefined) {
-		  for (let i = 0; i < rootNode.childNode.length; i++) {
-			rootNode.childNode[i].a0 = rootNode.a1;
-			rootNode.childNode[i].p0 = rootNode.p1;
-			rootNode.childNode[i].parentNode = rootNode;
-		  }
-		}
+    let angle     = this.findRotation(rootVect, childVect)[1];
 
-		// Recursion on root
-		return this.simplifySkeleton(rootNode, rotationThreshold);
-	  } else {
-		// Otherwise, recurse on the child and return root
-		rootNode.childNode[0] = this.simplifySkeleton(
-		  rootNode.childNode[0],
-		  rotationThreshold
-		);
-		return rootNode;
-	  }
-	} else {
-	  // More than one child, recurse on the children and return root
-	  for (let i = 0; i < rootNode.childNode.length; i++) {
-		rootNode.childNode[i] = this.simplifySkeleton(
-		  rootNode.childNode[i],
-		  rotationThreshold
-		);
-	  }
-	  return rootNode;
-	}
+    if (angle < rotationThreshold) { // must remove node
+      rootNode.a1        = childNode.a1;
+      rootNode.p1        = childNode.p1;
+      rootNode.childNode = childNode.childNode;
+
+      
+      if (!rootNode.hasChildren()) { // no new children
+        rootNode.childNode[0] = this.simplifySkeleton(rootNode.childNode[0], rotationThreshold);
+
+        return rootNode;
+      }
+      
+      // Update a0, p0, and parentNode of the new children
+      for (let i = 0; i < rootNode.childNode.length; i++) {
+        rootNode.childNode[i].a0         = rootNode.a1;
+        rootNode.childNode[i].p0         = rootNode.p1;
+        rootNode.childNode[i].parentNode = rootNode;
+      }
+    }
+
+    return this.simplifySkeleton(rootNode, rotationThreshold); // Recurse on root
   },
+
 
   generateSegmentsHermite: function (
     rootNode,
